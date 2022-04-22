@@ -7,7 +7,7 @@ local opts = {
   strip_cmd_at = 65,
 
   -- options for extended menu ------------------------------------------------
-  toggle_menu_binding = 'alt+t',
+  toggle_menu_binding = 't',
   lines_to_show = 17,
   pause_on_open = true,
   resume_on_exit = "only-if-was-paused", -- another possible value is true
@@ -28,12 +28,13 @@ package.path =
   mp.command_native({"expand-path", "~~/script-modules/?.lua;"})..package.path
 local em = require "extended-menu"
 
-local chapter_menu = em:new(opts)
+local mx_menu = em:new(opts)
 
 local data = {list = {}}
 
-function chapter_menu:submit(val)
-  mp.msg.info(#val.cmd, 'dmg len')
+function mx_menu:submit(val)
+  mp.msg.info(val.cmd)
+  mp.command(val.cmd)
 end
 
 local function get_cmd_list()
@@ -58,7 +59,7 @@ local function get_cmd_list()
   data.list = bindings
 end
 
- -- [i]ndex [v]alue
+-- [i]ndex [v]alue
 function em:get_line(_, v)
     local a = assdraw.ass_new()
     -- 20 is just a hardcoded value, cuz i don't think any keybinding string
@@ -114,19 +115,7 @@ end
 -- mp.register_event("file-loaded", get_cmd_list)
 get_cmd_list()
 
-
--- TODO: any way to remove dat shit? i don't wana expand path, just import the
--- 'add_leader_key_binding' function
-package.path =
-  mp.command_native({"expand-path", "~~/scripts/?.lua;"})..package.path
-
-local add_leader_key_binding = require "leader"
-
-add_leader_key_binding("ta", "M-x", function()
-                         chapter_menu:init(data)
-end)
-
 -- keybind to launch menu
--- mp.add_key_binding(opts.toggle_menu_binding, "M-x", function()
---                      chapter_menu:init(data)
--- end)
+mp.add_key_binding(opts.toggle_menu_binding, "M-x", function()
+                     mx_menu:init(data)
+end)

@@ -22,6 +22,8 @@ local leader = {
   was_paused = false, -- flag that indicates that vid was paused by this script
 
   leader_bindings = {},
+  matching_commands = nil,
+  which_key_timeout = nil,
 
   key_sequence = '',
   -- history = {},
@@ -38,7 +40,7 @@ function leader:init(options)
   -- self:get_cmd_list()
 
   -- keybind to launch menu
-  mp.add_forced_key_binding(opts.leader_key, "M-x", function()
+  mp.add_forced_key_binding(opts.leader_key, "leader", function()
                        self:start_key_sequence()
   end)
 end
@@ -87,64 +89,117 @@ function leader:update(is_undefined_kbd)
     return a.text
   end
 
+  local function get_display_kbd()
+    local str = ''
+    for char in self.key_sequence:gmatch'.' do
+      str = str .. char .. ' '
+    end
+    return str:gsub("(.-)%s*$", "%1")
+  end
+
   local function get_input_string()
     local a = ass_new_wrapper()
     a:pos(opts.menu_x_padding, menu_y_pos + opts.menu_y_padding)
-    a:append(self:ass_escape(opts.leader_key) .. '+')
-    a:append(self:ass_escape(self.key_sequence))
-    a:append(is_undefined_kbd and '\\his undefined' or "")
+    a:append(self:ass_escape(opts.leader_key) ..
+             (#self.key_sequence == 0 and '' or '\\h'))
+    a:append(self:ass_escape(get_display_kbd()))
+
+    a:append(is_undefined_kbd and '\\his undefined' or "-")
     return a.text
   end
 
   leader.ass.res_x = ww
   leader.ass.res_y = wh
-  leader.ass.data = table.concat({
-      get_background(),
-      get_input_string(),
-  }, "\n")
+  leader.ass.data = table.concat({get_background(), get_input_string()}, "\n")
 
   leader.ass:update()
 
 end
 
--- TODO: make this func more like the one in emacs
-function leader:add_key_binding(key, name, cmd)
-  -- 'name' for now will be unused, but just for now
-  print(key, name, cmd)
-  table.insert(self.leader_bindings, {key = key, name = name, cmd = cmd})
+function leader:set_leader_bindings(bindings)
+
+  local function get_full_cmd_name(cmd)
+    local b_list = mp.get_property_native("input-bindings")
+
+    -- supposing there's gonna be only one match
+    for _,v in ipairs(b_list) do
+      if v.cmd:find(cmd, 1, -1) then return v.cmd end
+    end
+  end
+
+  local function set(_bindings, prefix)
+
+    local key, name, comment, innerBindings
+
+    for _,binding in ipairs(_bindings) do
+      key, name, comment, innerBindings = table.unpack(binding)
+
+      if name == 'prefix' then
+        set(innerBindings, key)
+      else
+        name = get_full_cmd_name(name)
+
+        if name then
+          local cmd_name, times_replaced = name:gsub(".*/(.*)", '%1')
+          -- if binding was defined with 'name' provided then unbind it from mpv
+          if times_replaced ~= 0 then mp.remove_key_binding(cmd_name) end
+        end
+
+        print((prefix and prefix or '') .. key, name, comment)
+        table.insert(self.leader_bindings, {
+                       key = (prefix and prefix or '') .. key,
+                       cmd = name,
+                       comment = comment})
+
+      end
+    end
+  end
+
+  set(bindings)
+
 end
 
 function leader:get_matching_commands(kbd)
-  local bindings = {}
+  self.matching_commands = {}
   for _,v in ipairs(self.leader_bindings) do
-    if v.key:lower():find(kbd:lower()) then
-      table.insert(bindings, v)
+    if v.key:find(kbd) then
+      table.insert(self.matching_commands, v)
     end
   end
-  return bindings
 end
 
 function leader:handle_input(c)
   self.key_sequence = self.key_sequence .. c
-  local matching_commands = self:get_matching_commands(self.key_sequence)
+  self:get_matching_commands(self.key_sequence)
 
-  -- if #matching_commands < 20 then print(matching_commands) end
-  print(matching_commands[0], 'lgn')
+  if self.which_key_timeout then
+    -- REVIEW: perhaps i need to explicitly remove previous timer
+    self.which_key_timeout = mp.add_timout(
+      1, function ()
+        self:update(false, true)
+    end)
+  end
 
-  if #matching_commands == 0 then
+  print(self.matching_commands[1])
+
+  if #self.matching_commands == 0 then
     self:update(true)
     self:set_active(false, true)
   end
 
-  if #matching_commands > 1 then
-    self.key_sequence = self.key_sequence .. '+'
+  if #self.matching_commands > 1 then
     self:update()
   end
 
-  if #matching_commands == 1 then
-    matching_commands[1].cmd()
+  if #self.matching_commands == 1 then
+    -- if key sequence matches only one command, but key sequence isn't full..
+    if #self.matching_commands[1].key ~= #self.key_sequence then
+      self:update()
+      return
+    end
 
-    print(self.key_sequence)
+    mp.command(self.matching_commands[1].cmd)
+
     self:update()
     self:set_active(false)
   end
@@ -230,20 +285,19 @@ function leader:set_active(active, delayed)
 end
 
 -- TODO: bind this to C-h maybe and pop extended-menu?
-function leader:help_command(param)
-  local cmdlist = mp.get_property_native('command-list')
+function leader:which_key(bindings)
   local output = ''
-  if param == '' then
-    output = 'Available commands:\n'
-    for _, cmd in ipairs(cmdlist) do
-      output = output  .. '  ' .. cmd.name
+    for _, cmd in ipairs(bindings) do
+      output = output .. '  ' .. cmd.name
     end
-    output = output .. '\n'
-    output = output .. 'Use "help command" to show information about a command.\n'
-    output = output .. "ESC or Ctrl+d exits the console.\n"
-  else
+
+    -- 28 letters one column
+    -- background splits with 1px darker line + 3px bottom padding
+    -- determine the height of menu (more than >= 6 then max height (6 lines))
+    -- compose lines -> An .. An+6
+
     local cmd = nil
-    for _, curcmd in ipairs(cmdlist) do
+    for _, curcmd in ipairs(bindings) do
       if curcmd.name:find(param, 1, true) then
         cmd = curcmd
         if curcmd.name == param then
@@ -251,19 +305,7 @@ function leader:help_command(param)
         end
       end
     end
-    output = output .. 'Command "' .. cmd.name .. '"\n'
-    for _, arg in ipairs(cmd.args) do
-      output = output .. '    ' .. arg.name .. ' (' .. arg.type .. ')'
-      if arg.optional then
-        output = output .. ' (optional)'
-      end
-      output = output .. '\n'
-    end
-    if cmd.vararg then
-      output = output .. 'This command supports variable arguments.\n'
-    end
-  end
-  -- log_add('', output)
+
 end
 
 -- List of input bindings. This is a weird mashup between common GUI text-input
