@@ -294,7 +294,7 @@ function em:update(err_code)
     -- REVIEW: how to use something like table.unpack below?
     for i=self.list.show_from_to[1], self.list.show_from_to[2] do
       local value = assert(self:current()[i], 'no value with index ' .. i)
-      local y_offset = menu_y_pos + self.menu_x_padding +
+      local y_offset = menu_y_pos + self.menu_y_padding +
         (line_height * (i - self.list.show_from_to[1] + 1))
 
       if i == self.list.pointer_i then apply_highlighting(y_offset) end

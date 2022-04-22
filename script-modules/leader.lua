@@ -7,11 +7,12 @@ local opts = {
   pause_on_open = true,
   resume_on_exit = "only-if-was-paused", -- another possible value is true
   bar_hide_timeout = 2, -- timeout in seconds
+  strip_cmd_at = 28,
 
   -- styles
   font_size = 21,
   menu_x_padding = 3, -- this padding for now applies only to 'left', not x
-  menu_y_padding = 0, -- but this one applies to both - top & bottom
+  which_key_menu_y_padding = 3,
 }
 
 -- create namespace
@@ -22,12 +23,19 @@ local leader = {
   was_paused = false, -- flag that indicates that vid was paused by this script
 
   leader_bindings = {},
-  matching_commands = nil,
-  which_key_timeout = nil,
+  prefixes = {}, -- needed for some display info only
+  matching_commands = {},
+  which_key_timer = nil,
+  close_timer = nil,
+
+  text_color = {
+    default = 'ffffff',
+    key = 'ffffff',
+    command = 'd8a07b',
+    comment = '636363',
+  },
 
   key_sequence = '',
-  -- history = {},
-  -- history_pos = 1,
   key_bindings = {},
 }
 
@@ -37,25 +45,36 @@ function leader:init(options)
   opts = options
   setmetatable(opts, _opts)
 
-  -- self:get_cmd_list()
-
   -- keybind to launch menu
   mp.add_forced_key_binding(opts.leader_key, "leader", function()
                        self:start_key_sequence()
   end)
 end
 
+-- REVIEW: remove this func, ain't needed (since im copying emacs behavior)
 function leader:exit()
   self:undefine_key_bindings()
+  self.close_timer:kill()
   collectgarbage()
 end
 
 function leader:start_key_sequence()
+  -- remove close timer in case user started another sequence before status
+  -- line disappeared
+  if self.close_timer then self.close_timer:kill() end
+
   self:set_active(true)
 end
 
-function leader:update(is_undefined_kbd)
+function leader:get_font_color(style)
+  return '{\\1c&H' .. self.text_color[style] .. '}'
+end
+
+-- opts: {is_prefix = Bool, show_which_key = Bool, is_undefined_kbd = Bool}
+function leader:update(params)
   -- ASS tags documentation here - https://aegi.vmoe.info/docs/3.0/ASS_Tags/
+
+  params = params or {}
 
   -- do not bother if function was called to close the menu..
   if not self.is_active then
@@ -64,10 +83,11 @@ function leader:update(is_undefined_kbd)
   end
 
   local ww, wh = mp.get_osd_size() -- window width & height
-  -- TODO: make alignment for this whole module bottom left, not bottom right
-  -- so i can set y-position more elegantly
-  local menu_y_pos =
-    wh - (opts.font_size + opts.menu_y_padding * 2)
+  local menu_y_pos = wh - opts.font_size
+  local which_key_lines_amount = math.min(#self.matching_commands, 6)
+  -- y pos where to start drawing which key (1 is pixels from divider line)
+  local which_key_y_offset = menu_y_pos - 1 - opts.font_size *
+    which_key_lines_amount - opts.which_key_menu_y_padding * 2
 
   -- function to get rid of some copypaste
   local function ass_new_wrapper()
@@ -80,12 +100,35 @@ function leader:update(is_undefined_kbd)
 
   local function get_background()
     local a = ass_new_wrapper()
+
+    -- draw keybind background
     a:append('{\\1c&H1c1c1c}') -- background color
-    -- a:append('{\\1a&H19}') -- opacity
     a:pos(0, 0)
     a:draw_start()
     a:rect_cw(0, menu_y_pos, ww, wh)
     a:draw_stop()
+
+    -- draw separator line
+    if params.show_which_key then
+      a:new_event()
+      a:append('{\\1c&Hffffff}') -- background color
+      a:pos(0, 0)
+      a:draw_start()
+      a:rect_cw(0, menu_y_pos - 1, ww, menu_y_pos)
+      a:draw_stop()
+    end
+
+    -- draw lines of background based on matching_command length (max 6 lines)
+    -- (for which-key functionality)
+    if params.show_which_key then
+      a:new_event()
+      a:append('{\\1c&H1c1c1c}') -- background color
+      a:pos(0, 0)
+      a:draw_start()
+      a:rect_cw(0, which_key_y_offset, ww, menu_y_pos - 2)
+      a:draw_stop()
+    end
+
     return a.text
   end
 
@@ -99,18 +142,82 @@ function leader:update(is_undefined_kbd)
 
   local function get_input_string()
     local a = ass_new_wrapper()
-    a:pos(opts.menu_x_padding, menu_y_pos + opts.menu_y_padding)
+    a:pos(opts.menu_x_padding, menu_y_pos)
     a:append(self:ass_escape(opts.leader_key) ..
              (#self.key_sequence == 0 and '' or '\\h'))
     a:append(self:ass_escape(get_display_kbd()))
 
-    a:append(is_undefined_kbd and '\\his undefined' or "-")
+    a:append(params.is_undefined_kbd and '\\his undefined' or "-")
+
+    if params.is_prefix and params.show_which_key then
+      a:append(self:get_font_color('comment'))
+      -- get last key of current keybinding and append prefix name after
+      -- keybinding string
+      local last_key = self.key_sequence:gsub('.*(.)$', '%1')
+      a:append('\\h' .. self.prefixes[last_key].prefix_name)
+    end
+
     return a.text
+  end
+
+  local function get_spaces(num)
+    -- returns num-length string full of spaces
+    local s = ''
+    for _=1,num do s = s .. '\\h' end
+    return s
+  end
+
+  local function which_key()
+    local a = assdraw.ass_new()
+
+    local function get_line(i)
+      local key = self.matching_commands[i].key:gsub('.*(.)$', '%1')
+      local cmd = #self.matching_commands[i].cmd > opts.strip_cmd_at
+        and string.sub(self.matching_commands[i].cmd, 1,
+                       opts.strip_cmd_at - 3) .. '...'
+        or self.matching_commands[i].cmd
+
+      a:append(self:get_font_color('key'))
+      a:append(key)
+      a:append(self:get_font_color('comment'))
+      a:append('\\h→\\h')
+      a:append(self:get_font_color('command'))
+      a:append(cmd)
+      -- 2 for 2 spaces between columns
+      a:append(get_spaces(opts.strip_cmd_at + 2 -
+                          #self.matching_commands[i].cmd))
+    end
+
+    for i=1,which_key_lines_amount do
+      local y_offset = which_key_y_offset + opts.which_key_menu_y_padding +
+        opts.font_size * (i - 1)
+
+      a:new_event()
+      -- reset styles
+      a:append('{\\an7\\bord0\\shad0}') -- alignment top left, border 0, shadow 0
+      a:append('{\\fs' .. opts.font_size .. '}')
+
+      a:pos(5, y_offset)
+
+      get_line(i)
+
+      local j = i
+      while self.matching_commands[j + 6] do
+        get_line(j+6)
+        j = j + 6
+      end
+
+    end
+
+    return a.text
+
   end
 
   leader.ass.res_x = ww
   leader.ass.res_y = wh
-  leader.ass.data = table.concat({get_background(), get_input_string()}, "\n")
+  leader.ass.data = table.concat({get_background(),
+                                  get_input_string(),
+                                  params.is_prefix and which_key()}, "\n")
 
   leader.ass:update()
 
@@ -135,6 +242,8 @@ function leader:set_leader_bindings(bindings)
       key, name, comment, innerBindings = table.unpack(binding)
 
       if name == 'prefix' then
+        -- fill prefixes object with prefixes names
+        self.prefixes[key] = {prefix_name = comment}
         set(innerBindings, key)
       else
         name = get_full_cmd_name(name)
@@ -145,7 +254,6 @@ function leader:set_leader_bindings(bindings)
           if times_replaced ~= 0 then mp.remove_key_binding(cmd_name) end
         end
 
-        print((prefix and prefix or '') .. key, name, comment)
         table.insert(self.leader_bindings, {
                        key = (prefix and prefix or '') .. key,
                        cmd = name,
@@ -172,29 +280,37 @@ function leader:handle_input(c)
   self.key_sequence = self.key_sequence .. c
   self:get_matching_commands(self.key_sequence)
 
-  if self.which_key_timeout then
-    -- REVIEW: perhaps i need to explicitly remove previous timer
-    self.which_key_timeout = mp.add_timout(
-      1, function ()
-        self:update(false, true)
-    end)
+  -- always kill current timer if present
+  if self.which_key_timer then
+    self.which_key_timer:kill() -- TODO: check if it works
   end
 
-  print(self.matching_commands[1])
-
   if #self.matching_commands == 0 then
-    self:update(true)
+    self:update({is_undefined_kbd = true})
     self:set_active(false, true)
   end
 
   if #self.matching_commands > 1 then
-    self:update()
+    self:update({is_prefix = true}) -- show just leader string
+
+      -- and set timeout to show which-key
+    self.which_key_timer = mp.add_timeout(
+      0.1, function ()
+        self:update({is_prefix = true, show_which_key = true})
+    end)
   end
 
   if #self.matching_commands == 1 then
     -- if key sequence matches only one command, but key sequence isn't full..
     if #self.matching_commands[1].key ~= #self.key_sequence then
-      self:update()
+      self:update({is_prefix = true}) -- show just leader string
+
+      -- and set timeout to show which-key
+      self.which_key_timer = mp.add_timeout(
+        0.1, function ()
+          self:update({is_prefix = true, show_which_key = true})
+      end)
+
       return
     end
 
@@ -277,7 +393,7 @@ function leader:set_active(active, delayed)
     -- clearing up
     self.key_sequence = ''
     self.was_paused = false
-    mp.add_timeout((delayed and opts.bar_hide_timeout or 0), function ()
+    self.close_timer = mp.add_timeout((delayed and opts.bar_hide_timeout or 0), function ()
         self:update()
     end)
     collectgarbage()
