@@ -1,10 +1,6 @@
 local mp = require 'mp' -- isn't actually required, mp still gonna be defined
 
--- should not be altered here, edit options in corresponding .conf file
-local opts = {
-  leader_key = ',',
-  -- TODO: rest keybindings
-}
+local opts = {}
 
 (require 'mp.options').read_options(opts, mp.get_script_name())
 

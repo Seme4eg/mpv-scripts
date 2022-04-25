@@ -80,6 +80,8 @@ function em:new(o)
   o = o or {}
   setmetatable(o, self)
   self.__index = self
+
+  o.filter_by_fields = utils.parse_json(o.filter_by_fields)
   return o
 end
 

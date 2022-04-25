@@ -19,7 +19,8 @@ local opts = {
   menu_y_padding = 2,
 
   search_heading = 'M-x',
-  filter_by_fields = {'cmd', 'key', 'comment'},
+  -- filter_by_fields = {'cmd', 'key', 'comment'},
+  filter_by_fields = [[ [ "cmd", "key", "comment" ] ]],
 }
 
 (require 'mp.options').read_options(opts, mp.get_script_name())

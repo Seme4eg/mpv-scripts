@@ -4,10 +4,11 @@ local assdraw = require 'mp.assdraw'
 
 local opts = {
   leader_key = ',',
-  pause_on_open = true,
+  pause_on_open = false,
   resume_on_exit = "only-if-was-paused", -- another possible value is true
-  bar_hide_timeout = 2, -- timeout in seconds
-  strip_cmd_at = 28,
+  hide_timeout = 2, -- timeout in seconds to hide menu
+  which_key_timeout = 0.1, -- timeout in seconds to show which-key menu
+  strip_cmd_at = 28, -- max symbols for cmd names in which-key menu
 
   -- styles
   font_size = 21,
@@ -25,12 +26,11 @@ local leader = {
   leader_bindings = {},
   prefixes = {}, -- needed for some display info only
   matching_commands = {},
-  which_key_timer = nil,
-  close_timer = nil,
+  which_key_timer = nil, -- timer obj, that opens which-key
+  close_timer = nil, -- timer obj, that closes menu
 
   text_color = {
-    default = 'ffffff',
-    key = 'ffffff',
+    key = 'ffffff', -- TODO: color! light-green
     command = 'd8a07b',
     comment = '636363',
   },
@@ -66,10 +66,6 @@ function leader:start_key_sequence()
   self:set_active(true)
 end
 
-function leader:get_font_color(style)
-  return '{\\1c&H' .. self.text_color[style] .. '}'
-end
-
 -- opts: {is_prefix = Bool, show_which_key = Bool, is_undefined_kbd = Bool}
 function leader:update(params)
   -- ASS tags documentation here - https://aegi.vmoe.info/docs/3.0/ASS_Tags/
@@ -96,6 +92,10 @@ function leader:update(params)
     a:append('{\\an7\\bord0\\shad0}') -- alignment top left, border 0, shadow 0
     a:append('{\\fs' .. opts.font_size .. '}')
     return a
+  end
+
+  local function get_font_color(style)
+    return '{\\1c&H' .. self.text_color[style] .. '}'
   end
 
   local function get_background()
@@ -125,7 +125,7 @@ function leader:update(params)
       a:append('{\\1c&H1c1c1c}') -- background color
       a:pos(0, 0)
       a:draw_start()
-      a:rect_cw(0, which_key_y_offset, ww, menu_y_pos - 2)
+      a:rect_cw(0, which_key_y_offset, ww, menu_y_pos)
       a:draw_stop()
     end
 
@@ -150,7 +150,7 @@ function leader:update(params)
     a:append(params.is_undefined_kbd and '\\his undefined' or "-")
 
     if params.is_prefix and params.show_which_key then
-      a:append(self:get_font_color('comment'))
+      a:append(get_font_color('comment'))
       -- get last key of current keybinding and append prefix name after
       -- keybinding string
       local last_key = self.key_sequence:gsub('.*(.)$', '%1')
@@ -177,11 +177,11 @@ function leader:update(params)
                        opts.strip_cmd_at - 3) .. '...'
         or self.matching_commands[i].cmd
 
-      a:append(self:get_font_color('key'))
+      a:append(get_font_color('key'))
       a:append(key)
-      a:append(self:get_font_color('comment'))
+      a:append(get_font_color('comment'))
       a:append('\\h→\\h')
-      a:append(self:get_font_color('command'))
+      a:append(get_font_color('command'))
       a:append(cmd)
       -- 2 for 2 spaces between columns
       a:append(get_spaces(opts.strip_cmd_at + 2 -
@@ -197,16 +197,16 @@ function leader:update(params)
       a:append('{\\an7\\bord0\\shad0}') -- alignment top left, border 0, shadow 0
       a:append('{\\fs' .. opts.font_size .. '}')
 
-      a:pos(5, y_offset)
+      a:pos(opts.menu_x_padding, y_offset)
 
       get_line(i)
 
+      -- compose lines out of elements A(n) and A(n+6)
       local j = i
       while self.matching_commands[j + 6] do
         get_line(j+6)
         j = j + 6
       end
-
     end
 
     return a.text
@@ -267,7 +267,7 @@ function leader:set_leader_bindings(bindings)
 
 end
 
-function leader:get_matching_commands(kbd)
+function leader:update_matching_commands(kbd)
   self.matching_commands = {}
   for _,v in ipairs(self.leader_bindings) do
     if v.key:find(kbd) then
@@ -276,13 +276,48 @@ function leader:get_matching_commands(kbd)
   end
 end
 
+-- Set the REPL visibility
+function leader:set_active(active, delayed)
+  if active == self.is_active then return end
+  if active then
+    self.is_active = true
+    -- mp.enable_messages('terminal-default') -- REVIEW: what's that?
+    self:define_key_bindings()
+
+    -- set flag 'was_paused' only if vid wasn't paused before EM init
+    if opts.pause_on_open and not mp.get_property_bool("pause", false) then
+      mp.set_property_bool("pause", true)
+      self.was_paused = true
+    end
+
+    self:update()
+  else
+    -- no need to call 'update' in this block cuz 'clear' method is calling it
+    self.is_active = false
+    self:undefine_key_bindings()
+
+    if opts.resume_on_exit == true or
+      (opts.resume_on_exit == "only-if-was-paused" and self.was_paused) then
+        mp.set_property_bool("pause", false)
+    end
+
+    -- clearing up
+    self.key_sequence = ''
+    self.was_paused = false
+    self.close_timer = mp.add_timeout((delayed and opts.hide_timeout or 0), function ()
+        self:update()
+    end)
+    collectgarbage()
+  end
+end
+
 function leader:handle_input(c)
   self.key_sequence = self.key_sequence .. c
-  self:get_matching_commands(self.key_sequence)
+  self:update_matching_commands(self.key_sequence)
 
   -- always kill current timer if present
   if self.which_key_timer then
-    self.which_key_timer:kill() -- TODO: check if it works
+    self.which_key_timer:kill()
   end
 
   if #self.matching_commands == 0 then
@@ -295,7 +330,7 @@ function leader:handle_input(c)
 
       -- and set timeout to show which-key
     self.which_key_timer = mp.add_timeout(
-      0.1, function ()
+      opts.which_key_timeout, function ()
         self:update({is_prefix = true, show_which_key = true})
     end)
   end
@@ -307,7 +342,7 @@ function leader:handle_input(c)
 
       -- and set timeout to show which-key
       self.which_key_timer = mp.add_timeout(
-        0.1, function ()
+        opts.which_key_timeout, function ()
           self:update({is_prefix = true, show_which_key = true})
       end)
 
@@ -363,65 +398,6 @@ function leader:ass_escape(str)
   str = str:gsub('\\N ', '\\N\\h')
   str = str:gsub('^ ', '\\h')
   return str
-end
-
--- Set the REPL visibility ("enable", Esc)
-function leader:set_active(active, delayed)
-  if active == self.is_active then return end
-  if active then
-    self.is_active = true
-    -- mp.enable_messages('terminal-default') -- REVIEW: what's that?
-    self:define_key_bindings()
-
-    -- set flag 'was_paused' only if vid wasn't paused before EM init
-    if opts.pause_on_open and not mp.get_property_bool("pause", false) then
-      mp.set_property_bool("pause", true)
-      self.was_paused = true
-    end
-
-    self:update()
-  else
-    -- no need to call 'update' in this block cuz 'clear' method is calling it
-    self.is_active = false
-    self:undefine_key_bindings()
-
-    if opts.resume_on_exit == true or
-      (opts.resume_on_exit == "only-if-was-paused" and self.was_paused) then
-        mp.set_property_bool("pause", false)
-    end
-
-    -- clearing up
-    self.key_sequence = ''
-    self.was_paused = false
-    self.close_timer = mp.add_timeout((delayed and opts.bar_hide_timeout or 0), function ()
-        self:update()
-    end)
-    collectgarbage()
-  end
-end
-
--- TODO: bind this to C-h maybe and pop extended-menu?
-function leader:which_key(bindings)
-  local output = ''
-    for _, cmd in ipairs(bindings) do
-      output = output .. '  ' .. cmd.name
-    end
-
-    -- 28 letters one column
-    -- background splits with 1px darker line + 3px bottom padding
-    -- determine the height of menu (more than >= 6 then max height (6 lines))
-    -- compose lines -> An .. An+6
-
-    local cmd = nil
-    for _, curcmd in ipairs(bindings) do
-      if curcmd.name:find(param, 1, true) then
-        cmd = curcmd
-        if curcmd.name == param then
-          break -- exact match
-        end
-      end
-    end
-
 end
 
 -- List of input bindings. This is a weird mashup between common GUI text-input
