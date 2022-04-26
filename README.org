@@ -79,11 +79,27 @@ Make leader bindings appear in M-x menu
 **** TODO Move my bidings table somewhere else
 In future plans i want to move my keybinding object definition out of the script file so the user just has an example somewhere.
 
+**** TODO Upon init set all leader bindings to M-x and merge it there
+I don't wana risk and mess something up by merging leader bindings with native
+prop so ima just merge those with script inner value
+
+#+begin_src lua
+mp.commandv("script-message-to", "user_input", "request-user-input", opts)
+
+-- and register them in script itself
+mp.register_script_message("request-user-input", function(...)
+    local success, err = pcall(input_request, ...)
+    if not success then msg.error(err) end
+end)
+
+#+end_src
 ** M-x
-*** Options
 Copy =M-x.lua= to your =~~/scripts= directory and =script-modules/extended-menu.lua=
 to your =~~/script-modules= directory.
 
+*Keybidings* you can see in [[file:script-modules/README.org::*Usage (keybindings)][extended menu]] keybindings section.
+
+*** Options
 Options below are default and all of them are used only in =extended-menu=.
 
 If you want to change any of those - put those in =~~/scripts-opts/M-x.conf=
@@ -135,3 +151,5 @@ search_heading=Select chapter
 index_field=index
 filter_by_fields=[ "content" ]
 #+end_src
+
+Keybidings you can see in [[file:script-modules/README.org::*Usage (keybindings)][extended menu]] keybindings section.

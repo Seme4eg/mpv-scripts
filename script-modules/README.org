@@ -1,0 +1,120 @@
+#+TITLE: Extended menu
+
+** Extended menu
+*** Opts
+Most of them are selfexplanatory, if they ain't - there are comments in source
+
+#+begin_src conf
+lines_to_show=17 # NOT including search line
+pause_on_open=true # pauses video on menu opening
+# resumes on menu close
+resume_on_exit=only-if-was-paused # another possible value is true
+
+# styles
+font_size=21
+line_bottom_margin=1 # basically space between lines
+text_color=[ "default":'ffffff',"accent":'d8a07b',"current":'aaaaaa',"comment":'636363' ]
+menu_x_padding=5 # this padding for now applies only to left not x
+menu_y_padding=2 # but this one applies to both - top & bottom
+
+# Some more advanced customizations:
+search_heading=Default search heading
+# field to compare with when searching for current value by current_i
+index_field=index
+# fields to use when searching for string match / any other custom searching
+# if value has 0 length then search list item itself
+filter_by_fields=[]
+#+end_src
+
+~filter_by_fields~ option will determine which fields of initially passed table
+will be searched for match. For instance if you passed in /extended-menu/ table
+like ~{'key': .., 'comment': .., 'value': ..}~ and ~filter_by_fields~ you set
+"comment" and "value" then the script will search only those 2 fields in each
+table entry and will omit /key/.
+
+*** Script methods
+*Require definition in main script:*
+- ~submit(val)~ - assuming you passed correct 'data' format to init() will
+   return data[i], which shall contain full list
+
+*Have default implementations, but can be redefined:*
+- ~filter()~ - data might have different fields so there might be a need to write
+  a custom filter func. It accepts optional 'query' param in case you need to do
+  something with it before searching, otherwise takes current user input. But it
+  MUST return filtered table in the SAME format as initial list.
+- ~search_method(str)~ - search method to use given string (line). Must return nil
+  or any non-nil value in case of a match.
+- ~get_line(index, value)~ - function that composes an individual line, must
+  return String. Beware tho, if you gonna be using assdraw functionality there -
+  do not apply something like pos, alignment, ~\n~ and similar styles. Initially i
+  wrote this function just to apply different font color to different parts of
+  string and to wrap some parts with parentheses.
+
+There is also a section /HELPER FUNCTIONS/ in the script, which you can look
+through and maybe find something useful for your needs.
+
+*** Setting up
+Include =extended-menu= script:
+
+#+begin_src lua
+package.path =
+  mp.command_native({"expand-path", "~~/script-modules/?.lua;"})..package.path
+local em = require "extended-menu"
+#+end_src
+
+Create new instance of it, passing your options table (optional):
+
+#+begin_src lua
+local chapter_menu = em:new(opts)
+#+end_src
+
+Define a submit method in created instance:
+
+#+begin_src lua
+function chapter_menu:submit(val)
+  ...
+end
+#+end_src
+
+Set a keybind to fire ~init~ method passing data to it. Data should have format
+{list = Table, [current_i = Number]}:
+
+#+begin_src lua
+mp.add_key_binding(opts.your_keybinding, "chapters-menu", function()
+                    chapter_menu:init({list = {'chapter 1', 'chapter 2'}})
+end)
+#+end_src
+*** Usage (keybindings)
+These key bindings start to work when the menu is opened:
+- ~ctrl+[~, ~ctrl+g~, ~esc~ - close extended menu
+- ~enter~, ~kp_enter~, ~ctrl+m~ - enter key (handles submit (should be defined by you))
+- ~bs~, ~shift+bs~, ~ctrl+h~ - backspace
+- ~del~, ~shift+del~, ~ctrl+d~ - delete
+- ~ins~ - Insert
+- ~left~, ~ctrl+b~, ~right~, ~ctrl+f~ - move cursor to previous char
+- ~ctrl+k~, ~ctrl+p~ - choose previous list item
+- ~ctrl+j~, ~ctrl+n~ - choose next list item
+- ~up~, ~alt+p~, ~wheel_up~ - choose previous history item
+- ~down~, ~alt+n~, ~wheel_down~  - choose next history item
+- ~ctrl+left~, ~alt+b~ - move cursor to previous word
+- ~ctrl+right~, ~alt+f~ - move cursor to next word
+- ~ctrl+a~, ~home~ - HOME key
+- ~ctrl+e~, ~end~ - END key
+- ~pgup~ / ~pgdwn~ - PgUp / PgDn
+- ~ctrl+c~ - clear search string
+- ~ctrl+u~ - delete to beginning of search string
+- ~ctrl+v~, ~meta+v~ - paste
+- ~ctrl+bs~, ~ctrl+w~ - delete word back
+- ~ctrl+del~, ~alt+d~ - delete next word
+
+# shift+ins, mbtn_mid - self:paste(false) end
+# kp_dec - self:handle_char_input(.) end    
+
+*** Todos [0/1]
+**** TODO how to put /text_color/ variable in JSON in .conf file?
+Didn't work:
+
+#+begin_src conf
+text_color=[ "default":"000000","accent":"d8a07b","current":"aaaaaa","comment":"ffffff" ]
+#+end_src
+

@@ -15,6 +15,15 @@ local opts = {
   -- styles
   font_size=21,
   line_bottom_margin = 1,
+  -- TODO: how to put it in JSON in .conf file?
+  -- text_color=[ "default":"000000","accent":"d8a07b","current":"aaaaaa","comment":"ffffff" ]
+  -- didn't work
+  text_color = {
+    default = 'ffffff',
+    accent = 'd8a07b',
+    current = 'aaaaaa',
+    comment = '636363',
+  },
   menu_x_padding = 5,
   menu_y_padding = 2,
 

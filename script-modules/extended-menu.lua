@@ -75,6 +75,8 @@ local em = {
   }
 }
 
+-- PRIVATE METHODS ------------------------------------------------------------
+
 -- declare constructor function
 function em:new(o)
   o = o or {}
@@ -87,9 +89,15 @@ function em:new(o)
     o.filter_by_fields = utils.parse_json(o.filter_by_fields)
   end
 
+  print(type(o.text_color), o.text_color)
   if type(o.text_color) == 'string' then
     o.text_color = utils.parse_json(o.text_color)
   end
+
+  mp.dump(o)
+  -- for i,v in pairs(o) do
+  --   print(i,v)
+  -- end
 
   return o
 end
@@ -112,43 +120,6 @@ function em:filter_wrapper()
   self.prev_line = self.line
   self.list.pointer_i = 1
   self:set_from_to(true)
-end
-
-function em:filter()
-  -- default filter func, might be redefined in main script
-  local result = {}
-
-  local function get_full_search_str(v)
-    local str = ''
-    for _,key in ipairs(self.filter_by_fields) do str = str .. (v[key] or '') end
-    return str
-  end
-
-  for _,v in ipairs(self.list.full) do
-    -- if filter_by_fields has 0 length, then search list item itself
-    if #self.filter_by_fields == 0 then
-      if self:search_method(v) then table.insert(result, v) end
-    else
-      -- NOTE: we might use search_method on fiels separately like this:
-      -- for _,key in ipairs(self.filter_by_fields) do
-      --   if self:search_method(v[key]) then table.insert(result, v) end
-      -- end
-      -- But since im planning to implement fuzzy search in future i need full
-      -- search string here
-      if self:search_method(get_full_search_str(v)) then
-        table.insert(result, v)
-      end
-    end
-  end
-  return result
-end
-
--- TODO: implement fuzzy search and match highlights
-function em:search_method(str)
-  -- also might be redefined by main script
-
-  -- convert to string just to make sure..
-  return tostring(str):lower():find(self.line:lower())
 end
 
 function em:set_from_to(reset_flag)
@@ -205,9 +176,6 @@ function em:change_selected_index(num)
   self:set_from_to()
   self:update()
 end
-
--- this module requires submit function to be defined in main script
-function em:submit() self:update('no_submit_provided') end
 
 -- Render the REPL and console as an ASS OSD
 function em:update(err_code)
@@ -331,49 +299,6 @@ function em:update(err_code)
 
 end
 
--- HELPER FUNCTIONS -----------------------------------------------------------
-
-function em:get_line(_, v) -- [i]ndex, [v]alue
-  -- this func might be redefined in main script to get a custom-formatted line
-  -- default implementation of this func supposes that value.content field is a
-  -- String
-  local a = assdraw.ass_new()
-  local style = (self.list.current_i == v[self.index_field])
-    and 'current' or 'default'
-
-  a:append(self:reset_styles())
-  a:append(self:get_font_color(style))
-  -- content as default field, which is holding string
-  -- no point in moving it to main object since content itself is being
-  -- composed in THIS function, that might (and most likely, should) be
-  -- redefined in main script
-  a:append(v.content or 'Something is off in `get_line` func')
-  return a.text
-end
-
--- REVIEW: for now i don't see normal way of mergin this func with below one
--- but it's being used only once
-function em:reset_styles()
-  local a = assdraw.ass_new()
-  a:append('{\\an7\\bord0\\shad0}') -- alignment top left, border 0, shadow 0
-  a:append('{\\fs' .. self.font_size .. '}')
-  return a.text
-end
-
--- function to get rid of some copypaste
-function em:ass_new_wrapper()
-  local a = assdraw.ass_new()
-  a:new_event()
-  a:append(self:reset_styles())
-  return a
-end
-
-function em:get_font_color(style)
-  return '{\\1c&H' .. self.text_color[style] .. '}'
-end
-
--- END OF HELPER FUNCTIONS BLOCK ----------------------------------------------
-
 -- params:
 --  - data : {list: {}, [current_i] : num}
 function em:init(data)
@@ -417,6 +342,95 @@ end
 -- And in these observers he is setting a flag, that's being checked in func above
 -- mp.observe_property("osd-width", "native", mark_geometry_stale)
 -- mp.observe_property("osd-height", "native", mark_geometry_stale)
+
+-- PRIVATE METHODS END --------------------------------------------------------
+
+-- PUBLIC METHODS -------------------------------------------------------------
+
+function em:filter()
+  -- default filter func, might be redefined in main script
+  local result = {}
+
+  local function get_full_search_str(v)
+    local str = ''
+    for _,key in ipairs(self.filter_by_fields) do str = str .. (v[key] or '') end
+    return str
+  end
+
+  for _,v in ipairs(self.list.full) do
+    -- if filter_by_fields has 0 length, then search list item itself
+    if #self.filter_by_fields == 0 then
+      if self:search_method(v) then table.insert(result, v) end
+    else
+      -- NOTE: we might use search_method on fiels separately like this:
+      -- for _,key in ipairs(self.filter_by_fields) do
+      --   if self:search_method(v[key]) then table.insert(result, v) end
+      -- end
+      -- But since im planning to implement fuzzy search in future i need full
+      -- search string here
+      if self:search_method(get_full_search_str(v)) then
+        table.insert(result, v)
+      end
+    end
+  end
+  return result
+end
+
+-- TODO: implement fuzzy search and match highlights
+function em:search_method(str)
+  -- also might be redefined by main script
+
+  -- convert to string just to make sure..
+  return tostring(str):lower():find(self.line:lower())
+end
+
+-- this module requires submit function to be defined in main script
+function em:submit() self:update('no_submit_provided') end
+
+-- PUBLIC METHODS END ---------------------------------------------------------
+
+-- HELPER METHODS -------------------------------------------------------------
+
+function em:get_line(_, v) -- [i]ndex, [v]alue
+  -- this func might be redefined in main script to get a custom-formatted line
+  -- default implementation of this func supposes that value.content field is a
+  -- String
+  local a = assdraw.ass_new()
+  local style = (self.list.current_i == v[self.index_field])
+    and 'current' or 'default'
+
+  a:append(self:reset_styles())
+  a:append(self:get_font_color(style))
+  -- content as default field, which is holding string
+  -- no point in moving it to main object since content itself is being
+  -- composed in THIS function, that might (and most likely, should) be
+  -- redefined in main script
+  a:append(v.content or 'Something is off in `get_line` func')
+  return a.text
+end
+
+-- REVIEW: for now i don't see normal way of mergin this func with below one
+-- but it's being used only once
+function em:reset_styles()
+  local a = assdraw.ass_new()
+  a:append('{\\an7\\bord0\\shad0}') -- alignment top left, border 0, shadow 0
+  a:append('{\\fs' .. self.font_size .. '}')
+  return a.text
+end
+
+-- function to get rid of some copypaste
+function em:ass_new_wrapper()
+  local a = assdraw.ass_new()
+  a:new_event()
+  a:append(self:reset_styles())
+  return a
+end
+
+function em:get_font_color(style)
+  return '{\\1c&H' .. self.text_color[style] .. '}'
+end
+
+-- HELPER METHODS END ---------------------------------------------------------
 
 
 --[[
