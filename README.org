@@ -104,7 +104,7 @@ menu_x_padding=5
 menu_y_padding=2
 
 search_heading=M-x # heading text of a search bar
-filter_by_fields=[ ["cmd", "key", "comment"] ] # look for explanation below
+filter_by_fields=[ "cmd", "key", "comment" ] # look for explanation below
 #+end_src
 
 ~filter_by_fields~ option will determine in which fields to look for your search
@@ -133,5 +133,5 @@ menu_y_padding=2
 
 search_heading=Select chapter
 index_field=index
-filter_by_fields=[ ["content"] ]
+filter_by_fields=[ "content" ]
 #+end_src

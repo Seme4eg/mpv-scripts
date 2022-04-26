@@ -81,7 +81,16 @@ function em:new(o)
   setmetatable(o, self)
   self.__index = self
 
-  o.filter_by_fields = utils.parse_json(o.filter_by_fields)
+  -- some options might be customised by user in .conf file and read as strings
+  -- in that case parse those
+  if type(o.filter_by_fields) == 'string' then
+    o.filter_by_fields = utils.parse_json(o.filter_by_fields)
+  end
+
+  if type(o.text_color) == 'string' then
+    o.text_color = utils.parse_json(o.text_color)
+  end
+
   return o
 end
 

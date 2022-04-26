@@ -13,7 +13,7 @@ leader:init(opts) -- binds leader key
 
 -- FIXME: need timeout below since we need all functions to be defined before
 -- this script will run
-mp.add_timeout((0.1 and opts.bar_hide_timeout or 0), function ()
+mp.add_timeout(0.3, function ()
     leader:set_leader_bindings(
       -- key, name (must be unique!), comment, [follower bindings]
       {

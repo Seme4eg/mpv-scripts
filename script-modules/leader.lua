@@ -270,7 +270,8 @@ end
 function leader:update_matching_commands(kbd)
   self.matching_commands = {}
   for _,v in ipairs(self.leader_bindings) do
-    if v.key:find(kbd) then
+    -- only match the beginning of the string
+    if v.key:sub(1, #kbd):find(kbd) then
       table.insert(self.matching_commands, v)
     end
   end
