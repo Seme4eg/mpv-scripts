@@ -1,5 +1,5 @@
 local mp = require 'mp'
--- local utils = require 'mp.utils'
+local utils = require 'mp.utils'
 local assdraw = require 'mp.assdraw'
 
 local opts = {
@@ -30,8 +30,9 @@ local leader = {
   close_timer = nil, -- timer obj, that closes menu
 
   text_color = {
-    key = 'ffffff', -- TODO: color! light-green
-    command = 'd8a07b',
+    key = 'a9dfa1',
+    command = 'fcddb5',
+    prefix = 'd8a07b',
     comment = '636363',
   },
 
@@ -66,6 +67,41 @@ function leader:start_key_sequence()
   self:set_active(true)
 end
 
+-- basically a getter for 'matching_commands', but also returns prefixes
+function leader:matching_commands()
+  local result = {}
+
+    -- include all prefixed on n-th level
+    for key, value in ipairs(self.prefixes) do
+      if value.level == #self.key_sequence + 1 then
+        table.insert(result, {key = key, name = 'prefix', cmd = value.prefix_name})
+      end
+    end
+
+  -- in case user pressed jsut leader key - compose 'matching_commands' from
+  -- self.leader_bidnings with key.length == 1
+  if #self.key_sequence == 0 then
+    -- include all commands that consist of only 1 key
+    for i,v in ipairs(self.leader_bindings) do
+      if #v.key == 1 then
+        table.insert(result, v)
+      end
+    end
+  else -- in case there is at least 1 key pressed after leadre handle prefixes
+
+    -- include all commands that consist of only 1 key
+    for i,v in ipairs(self.matching_commands) do
+      if #v.key == #self.key_sequence + 1 then
+        table.insert(result, v)
+      end
+    end
+  end
+
+    -- TODO: sorting alphabetically
+
+  return result
+end
+
 -- opts: {is_prefix = Bool, show_which_key = Bool, is_undefined_kbd = Bool}
 function leader:update(params)
   -- ASS tags documentation here - https://aegi.vmoe.info/docs/3.0/ASS_Tags/
@@ -81,6 +117,12 @@ function leader:update(params)
   local ww, wh = mp.get_osd_size() -- window width & height
   local menu_y_pos = wh - opts.font_size
   local which_key_lines_amount = math.min(#self.matching_commands, 6)
+
+  -- if case of which-key for 'leader' raise 8 lines max number to 8
+  if #self.key_sequence == 0 then
+    which_key_lines_amount = math.min(#self.leader_bindings, 8)
+  end
+
   -- y pos where to start drawing which key (1 is pixels from divider line)
   local which_key_y_offset = menu_y_pos - 1 - opts.font_size *
     which_key_lines_amount - opts.which_key_menu_y_padding * 2
@@ -171,7 +213,9 @@ function leader:update(params)
     local a = assdraw.ass_new()
 
     local function get_line(i)
+      -- get last key of current command binding
       local key = self.matching_commands[i].key:gsub('.*(.)$', '%1')
+      -- if cmd is longer than max length - strip it
       local cmd = #self.matching_commands[i].cmd > opts.strip_cmd_at
         and string.sub(self.matching_commands[i].cmd, 1,
                        opts.strip_cmd_at - 3) .. '...'
@@ -213,11 +257,13 @@ function leader:update(params)
 
   end
 
+  print(#self.key_sequence, 'len')
+
   leader.ass.res_x = ww
   leader.ass.res_y = wh
   leader.ass.data = table.concat({get_background(),
                                   get_input_string(),
-                                  params.is_prefix and which_key()}, "\n")
+                                  (params.is_prefix or #self.key_sequence == 0) and which_key()}, "\n")
 
   leader.ass:update()
 
@@ -234,25 +280,21 @@ function leader:set_leader_bindings(bindings)
     end
   end
 
-  local function set(_bindings, prefix)
+  local function set(_bindings, prefix, level)
 
     local key, name, comment, innerBindings
+
+    level = level or 1 -- variable that is needed to be put in 'prefix' table
 
     for _,binding in ipairs(_bindings) do
       key, name, comment, innerBindings = table.unpack(binding)
 
       if name == 'prefix' then
         -- fill prefixes object with prefixes names
-        self.prefixes[key] = {prefix_name = comment}
-        set(innerBindings, key)
+        self.prefixes[key] = {prefix_name = comment, level = level}
+        set(innerBindings, key, level + 1)
       else
         name = get_full_cmd_name(name)
-
-        if name then
-          local cmd_name, times_replaced = name:gsub(".*/(.*)", '%1')
-          -- if binding was defined with 'name' provided then unbind it from mpv
-          if times_replaced ~= 0 then mp.remove_key_binding(cmd_name) end
-        end
 
         table.insert(self.leader_bindings, {
                        key = (prefix and prefix or '') .. key,
@@ -261,6 +303,11 @@ function leader:set_leader_bindings(bindings)
 
       end
     end
+
+    local bindings_json = utils.format_json(self.leader_bindings)
+    mp.commandv("script-message-to", "M_x", "merge-leader-bindings",
+                bindings_json, opts.leader_key)
+
   end
 
   set(bindings)
@@ -347,6 +394,13 @@ function leader:handle_input(c)
           self:update({is_prefix = true, show_which_key = true})
       end)
 
+      return
+    end
+
+    -- in case there is bound command to that key, but it's undefined..
+    if not self.matching_commands[1].cmd then
+      self:update({is_undefined_kbd = true})
+      self:set_active(false, true)
       return
     end
 

@@ -94,11 +94,6 @@ function em:new(o)
     o.text_color = utils.parse_json(o.text_color)
   end
 
-  mp.dump(o)
-  -- for i,v in pairs(o) do
-  --   print(i,v)
-  -- end
-
   return o
 end
 
@@ -387,6 +382,14 @@ end
 -- this module requires submit function to be defined in main script
 function em:submit() self:update('no_submit_provided') end
 
+function em:update_list(list)
+  -- for now this func doesn't handle cases when we have 'current_i'
+  -- to update it
+
+  self.list.full = list
+  if self.line ~= self.prev_line then self:filter_wrapper() end
+end
+
 -- PUBLIC METHODS END ---------------------------------------------------------
 
 -- HELPER METHODS -------------------------------------------------------------
@@ -413,7 +416,8 @@ end
 -- but it's being used only once
 function em:reset_styles()
   local a = assdraw.ass_new()
-  a:append('{\\an7\\bord0\\shad0}') -- alignment top left, border 0, shadow 0
+  -- alignment top left, no word wrapping, border 0, shadow 0
+  a:append('{\\an7\\q2\\bord0\\shad0}')
   a:append('{\\fs' .. self.font_size .. '}')
   return a.text
 end

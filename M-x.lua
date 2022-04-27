@@ -1,4 +1,5 @@
 local mp = require 'mp' -- isn't actually required, mp still gonna be defined
+local utils = require 'mp.utils'
 local assdraw = require 'mp.assdraw'
 
 -- should not be altered here, edit options in corresponding .conf file
@@ -68,6 +69,46 @@ local function get_cmd_list()
   data.list = bindings
 end
 
+local function merge_leader_bindings(le, leader_key)
+  -- REVIEW: sadly mpvs 'input-bindings' is read only and i can't force set
+  -- priority -1 for leader bindings.
+  -- Since leader script needs keybinding to be defined in 'input-bindings'.
+  -- Therefore i just merge those leader bindings in my own 'data.list'.
+
+  local not_found_leader_kbds = {}
+  for i,lb in ipairs(le) do
+    -- overwriting binding in data.list
+    for y,b in ipairs(data.list) do
+      if b.cmd:find(lb.cmd, 1, -1) then
+        data.list[y].priority = 13
+
+        local function split_with_spaces(str)
+          local result_str = ''
+          for char in str:gmatch'.' do result_str = result_str .. char .. ' ' end
+          return result_str:gsub("(.-)%s*$", "%1") -- strip spaces
+        end
+
+        data.list[y].key = leader_key .. ' ' .. split_with_spaces(lb.key)
+        -- if it's a script binding - initially it won't have comment field
+        -- but leader binding can (and should) have comment field, so we set it
+        -- and if it is normal keybinding and it had it's own comment field then
+        -- leave it as it was
+        data.list[y].comment = lb.comment or data.list[y].comment
+        -- print(data.list[y].key, data.list[y].priority, data.list[y].comment)
+
+        goto continue1
+      end
+    end
+    ::continue1::
+  end
+
+  -- TODO: handle warning about not found leader kbd better
+  for i,v in ipairs(not_found_leader_kbds) do
+    print(v, 'not found')
+  end
+
+end
+
 -- [i]ndex [v]alue
 function em:get_line(_, v)
     local a = assdraw.ass_new()
@@ -121,8 +162,21 @@ function em:get_line(_, v)
     return a.text
 end
 
+local function update_bindings()
+  get_cmd_list()
+  em:update_list(data.list)
+end
+
 -- mp.register_event("file-loaded", get_cmd_list)
 get_cmd_list()
+
+-- and register them in script itself
+mp.register_script_message("merge-leader-bindings", function(bindings, leader_key)
+                             bindings = utils.parse_json(bindings)
+                             merge_leader_bindings(bindings, leader_key)
+end)
+
+mp.observe_property('input-bindings', 'native', update_bindings)
 
 -- keybind to launch menu
 mp.add_key_binding(opts.toggle_menu_binding, "M-x", function()

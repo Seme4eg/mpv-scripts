@@ -1,6 +1,18 @@
 #+TITLE: MPV scripts
 
 ** Leader
+Adds /leader/ key to your mpv. With prefixes and [[https://github.com/justbur/emacs-which-key][which-key]] functionality.
+
+It won't redefine existing bidings (at least i didn't find a way to do it for
+now), but it will add leader bindings on top of current ones, which will allow
+you to freely redefine previous key bindings to any other command. For instance
+if you had ~seek~ command on ~l~ key and you bound it to ~<leader> n~ then u can
+bind any other command to ~l~ and you will still have ~<leader> n~ bound to ~seek~.
+
+*NOTE:* For *script* commands to appear in leader key bindings (after you set those
+up in script file) they must be initially set to some key, which is usually not
+a problem since most (if not all) scripts bind themselfes to some default key.
+
 *** Setup
 Copy =leader.lua= to your =~~/scripts= directory and =script-modules/leader.lua= to
 your =~~/script-modules= directory.
@@ -71,15 +83,12 @@ will result in ~sa+~ keybinding for ~increase-font~ command.
 Pass it to ~set_leader_bindings~ func, which can be found in the end of
 =~~/scripts/leader.lua=
 
-*** Todos [0/3]
+*** Todos [1/3]
 **** TODO Find good spot to sort bindings by key, to show in which-key in alphabetical order
-**** TODO Integrate leader bindings with M-x script
-Make leader bindings appear in M-x menu
-
 **** TODO Move my bidings table somewhere else
 In future plans i want to move my keybinding object definition out of the script file so the user just has an example somewhere.
 
-**** TODO Upon init set all leader bindings to M-x and merge it there
+**** DONE Upon init set all leader bindings to M-x and merge it there
 I don't wana risk and mess something up by merging leader bindings with native
 prop so ima just merge those with script inner value
 
