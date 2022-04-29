@@ -71,7 +71,7 @@ end
 
 local function merge_leader_bindings(le, leader_key)
   -- REVIEW: sadly mpvs 'input-bindings' is read only and i can't force set
-  -- priority -1 for leader bindings.
+  -- priority -1 for bindings that are overwritten by leader bindings.
   -- Since leader script needs keybinding to be defined in 'input-bindings'.
   -- Therefore i just merge those leader bindings in my own 'data.list'.
 
@@ -79,7 +79,7 @@ local function merge_leader_bindings(le, leader_key)
   for i,lb in ipairs(le) do
     -- overwriting binding in data.list
     for y,b in ipairs(data.list) do
-      if b.cmd:find(lb.cmd, 1, -1) then
+      if b.cmd:find(lb.cmd, 1, true) then
         data.list[y].priority = 13
 
         local function split_with_spaces(str)

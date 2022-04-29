@@ -7,7 +7,7 @@ local opts = {
   pause_on_open = false,
   resume_on_exit = "only-if-was-paused", -- another possible value is true
   hide_timeout = 2, -- timeout in seconds to hide menu
-  which_key_timeout = 0.1, -- timeout in seconds to show which-key menu
+  which_key_show_delay = 0.1, -- timeout in seconds to show which-key menu
   strip_cmd_at = 28, -- max symbols for cmd names in which-key menu
 
   -- styles
@@ -68,15 +68,19 @@ function leader:start_key_sequence()
 end
 
 -- basically a getter for 'matching_commands', but also returns prefixes
-function leader:matching_commands()
+function leader:get_matching_commands()
   local result = {}
 
-    -- include all prefixed on n-th level
-    for key, value in ipairs(self.prefixes) do
-      if value.level == #self.key_sequence + 1 then
-        table.insert(result, {key = key, name = 'prefix', cmd = value.prefix_name})
-      end
+  -- include all prefixes on n-th level that match current key sequence
+  for prefix, name in pairs(self.prefixes) do
+    if
+      #prefix == #self.key_sequence + 1
+      and prefix:sub(1, #self.key_sequence):find(self.key_sequence, 1, true)
+    then
+      table.insert(result,
+                   {key = prefix, name = 'prefix', cmd = name.prefix_name})
     end
+  end
 
   -- in case user pressed jsut leader key - compose 'matching_commands' from
   -- self.leader_bidnings with key.length == 1
@@ -97,12 +101,76 @@ function leader:matching_commands()
     end
   end
 
-    -- TODO: sorting alphabetically
+  -- aplhabetical sort
+  table.sort(result, function(i, j) return i.key < j.key end)
 
   return result
 end
 
--- opts: {is_prefix = Bool, show_which_key = Bool, is_undefined_kbd = Bool}
+function leader:update_matching_commands(kbd)
+  self.matching_commands = {}
+  for _,v in ipairs(self.leader_bindings) do
+    -- exact match of the beginning of the string
+    if v.key:sub(1, #kbd):find(kbd, 1, true) then
+      table.insert(self.matching_commands, v)
+    end
+  end
+end
+
+function leader:set_leader_bindings(bindings)
+
+  local function get_full_cmd_name(cmd)
+    local b_list = mp.get_property_native("input-bindings")
+
+    -- supposing there's gonna be only one match
+    for _,v in ipairs(b_list) do
+      -- gsub for stripping several spaces, since in input.conf those r common
+      local cmd_no_double_spaces = v.cmd:gsub('%s+', ' ')
+      if cmd_no_double_spaces:find(cmd, 1, true) then return v.cmd end
+    end
+  end
+
+  local function set(_bindings, prefix_sequence)
+
+    local key, name, comment, innerBindings
+
+    prefix_sequence = prefix_sequence or ''
+
+    for _,binding in ipairs(_bindings) do
+      key, name, comment, innerBindings = table.unpack(binding)
+
+      if name == 'prefix' then
+        -- fill prefixes object with prefixes names
+        self.prefixes[prefix_sequence .. key] = {prefix_name = comment}
+        -- recursively call this function to set inner bindings, do not return
+        set(innerBindings, prefix_sequence .. key)
+      else
+        local seek = name:find('seek', 1, true)
+
+        if seek then print(name, 'type') end
+
+        name = get_full_cmd_name(name)
+
+        if seek then print(name, 'type2') end
+
+        table.insert(self.leader_bindings, {
+                       key = prefix_sequence .. key,
+                       cmd = name,
+                       comment = comment})
+
+      end
+    end
+
+  end
+
+  set(bindings)
+
+  local bindings_json = utils.format_json(self.leader_bindings)
+  mp.commandv("script-message-to", "M_x", "merge-leader-bindings",
+              bindings_json, opts.leader_key)
+end
+
+-- opts: {is_prefix = Bool, is_undefined_kbd = Bool}
 function leader:update(params)
   -- ASS tags documentation here - https://aegi.vmoe.info/docs/3.0/ASS_Tags/
 
@@ -116,11 +184,15 @@ function leader:update(params)
 
   local ww, wh = mp.get_osd_size() -- window width & height
   local menu_y_pos = wh - opts.font_size
-  local which_key_lines_amount = math.min(#self.matching_commands, 6)
+
+  -- matching commands with prefixes included, only for 'which-key'
+  local current_matchings = self:get_matching_commands()
+  local show_which_key = #current_matchings > 1
+  local which_key_lines_amount = math.min(#current_matchings, 6)
 
   -- if case of which-key for 'leader' raise 8 lines max number to 8
   if #self.key_sequence == 0 then
-    which_key_lines_amount = math.min(#self.leader_bindings, 8)
+    which_key_lines_amount = math.min(#current_matchings, 8)
   end
 
   -- y pos where to start drawing which key (1 is pixels from divider line)
@@ -151,18 +223,16 @@ function leader:update(params)
     a:draw_stop()
 
     -- draw separator line
-    if params.show_which_key then
+    if show_which_key then
       a:new_event()
       a:append('{\\1c&Hffffff}') -- background color
       a:pos(0, 0)
       a:draw_start()
       a:rect_cw(0, menu_y_pos - 1, ww, menu_y_pos)
       a:draw_stop()
-    end
 
-    -- draw lines of background based on matching_command length (max 6 lines)
-    -- (for which-key functionality)
-    if params.show_which_key then
+      -- draw lines of background based on matching_command length (max 6 lines)
+      -- (for which-key functionality)
       a:new_event()
       a:append('{\\1c&H1c1c1c}') -- background color
       a:pos(0, 0)
@@ -191,12 +261,21 @@ function leader:update(params)
 
     a:append(params.is_undefined_kbd and '\\his undefined' or "-")
 
-    if params.is_prefix and params.show_which_key then
+    if params.is_prefix and show_which_key then
       a:append(get_font_color('comment'))
+      -- in case user just pressed <leader> - show it
+      -- if prefix name is undefined - show '+prefix'
+
       -- get last key of current keybinding and append prefix name after
       -- keybinding string
-      local last_key = self.key_sequence:gsub('.*(.)$', '%1')
-      a:append('\\h' .. self.prefixes[last_key].prefix_name)
+
+      local prefix_name
+      if #self.key_sequence == 0 then
+        prefix_name = '<leader>'
+      else
+        prefix_name = self.prefixes[self.key_sequence].prefix_name or ''
+      end
+      a:append('\\h' .. prefix_name)
     end
 
     return a.text
@@ -210,26 +289,38 @@ function leader:update(params)
   end
 
   local function which_key()
+
+    if #current_matchings <= 1 then return '' end
+
     local a = assdraw.ass_new()
 
     local function get_line(i)
-      -- get last key of current command binding
-      local key = self.matching_commands[i].key:gsub('.*(.)$', '%1')
+      -- get remaining keys of currently matching commands
+      local keys = current_matchings[i].key:gsub(self.key_sequence ..
+                                                     '(.*)$', '%1')
+
       -- if cmd is longer than max length - strip it
-      local cmd = #self.matching_commands[i].cmd > opts.strip_cmd_at
-        and string.sub(self.matching_commands[i].cmd, 1,
+      local cmd = #current_matchings[i].cmd > opts.strip_cmd_at
+        and string.sub(current_matchings[i].cmd, 1,
                        opts.strip_cmd_at - 3) .. '...'
-        or self.matching_commands[i].cmd
+        or current_matchings[i].cmd
+
+      -- prepend all prefix names with '+'
+      if current_matchings[i].name == 'prefix' then cmd = '+' .. cmd end
 
       a:append(get_font_color('key'))
-      a:append(key)
+      a:append(keys)
       a:append(get_font_color('comment'))
       a:append('\\h→\\h')
-      a:append(get_font_color('command'))
-      a:append(cmd)
+      -- in case current key is not pre-last one - show kbd as 'prefix'
+      a:append(get_font_color(
+                 (#keys == 1 and current_matchings[i].name ~= 'prefix')
+                 and 'command'
+                 or 'prefix'))
+      a:append(#keys == 1 and cmd or '+prefix')
       -- 2 for 2 spaces between columns
       a:append(get_spaces(opts.strip_cmd_at + 2 -
-                          #self.matching_commands[i].cmd))
+                          #current_matchings[i].cmd))
     end
 
     for i=1,which_key_lines_amount do
@@ -247,7 +338,7 @@ function leader:update(params)
 
       -- compose lines out of elements A(n) and A(n+6)
       local j = i
-      while self.matching_commands[j + 6] do
+      while current_matchings[j + 6] do
         get_line(j+6)
         j = j + 6
       end
@@ -257,71 +348,14 @@ function leader:update(params)
 
   end
 
-  print(#self.key_sequence, 'len')
-
   leader.ass.res_x = ww
   leader.ass.res_y = wh
   leader.ass.data = table.concat({get_background(),
                                   get_input_string(),
-                                  (params.is_prefix or #self.key_sequence == 0) and which_key()}, "\n")
+                                  which_key()}, "\n")
 
   leader.ass:update()
 
-end
-
-function leader:set_leader_bindings(bindings)
-
-  local function get_full_cmd_name(cmd)
-    local b_list = mp.get_property_native("input-bindings")
-
-    -- supposing there's gonna be only one match
-    for _,v in ipairs(b_list) do
-      if v.cmd:find(cmd, 1, -1) then return v.cmd end
-    end
-  end
-
-  local function set(_bindings, prefix, level)
-
-    local key, name, comment, innerBindings
-
-    level = level or 1 -- variable that is needed to be put in 'prefix' table
-
-    for _,binding in ipairs(_bindings) do
-      key, name, comment, innerBindings = table.unpack(binding)
-
-      if name == 'prefix' then
-        -- fill prefixes object with prefixes names
-        self.prefixes[key] = {prefix_name = comment, level = level}
-        set(innerBindings, key, level + 1)
-      else
-        name = get_full_cmd_name(name)
-
-        table.insert(self.leader_bindings, {
-                       key = (prefix and prefix or '') .. key,
-                       cmd = name,
-                       comment = comment})
-
-      end
-    end
-
-    local bindings_json = utils.format_json(self.leader_bindings)
-    mp.commandv("script-message-to", "M_x", "merge-leader-bindings",
-                bindings_json, opts.leader_key)
-
-  end
-
-  set(bindings)
-
-end
-
-function leader:update_matching_commands(kbd)
-  self.matching_commands = {}
-  for _,v in ipairs(self.leader_bindings) do
-    -- only match the beginning of the string
-    if v.key:sub(1, #kbd):find(kbd) then
-      table.insert(self.matching_commands, v)
-    end
-  end
 end
 
 -- Set the REPL visibility
@@ -378,8 +412,8 @@ function leader:handle_input(c)
 
       -- and set timeout to show which-key
     self.which_key_timer = mp.add_timeout(
-      opts.which_key_timeout, function ()
-        self:update({is_prefix = true, show_which_key = true})
+      opts.which_key_show_delay, function ()
+        self:update({is_prefix = true})
     end)
   end
 
@@ -390,8 +424,8 @@ function leader:handle_input(c)
 
       -- and set timeout to show which-key
       self.which_key_timer = mp.add_timeout(
-        opts.which_key_timeout, function ()
-          self:update({is_prefix = true, show_which_key = true})
+        opts.which_key_show_delay, function ()
+          self:update({is_prefix = true})
       end)
 
       return

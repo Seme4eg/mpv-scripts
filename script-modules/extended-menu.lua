@@ -89,7 +89,6 @@ function em:new(o)
     o.filter_by_fields = utils.parse_json(o.filter_by_fields)
   end
 
-  print(type(o.text_color), o.text_color)
   if type(o.text_color) == 'string' then
     o.text_color = utils.parse_json(o.text_color)
   end
