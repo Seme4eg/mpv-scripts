@@ -191,7 +191,7 @@ end
 
 local function update_bindings()
   get_cmd_list()
-  mp.commandv("script-message-to", "M_x", "leader-bindings-request")
+  mp.commandv("script-message-to", "leader", "leader-bindings-request")
   em:update_list(data.list)
 end
 

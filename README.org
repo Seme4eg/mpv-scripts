@@ -3,6 +3,8 @@
 ** Leader
 Adds /leader/ key to your mpv. With prefixes and [[https://github.com/justbur/emacs-which-key][which-key]] functionality.
 
+https://i.imgur.com/dUWFu3u.gif - demo
+
 It won't redefine existing bidings (at least i didn't find a way to do it for
 now), but it will add leader bindings on top of current ones, which will allow
 you to freely redefine previous key bindings to any other command. For instance
@@ -17,8 +19,7 @@ a problem since most (if not all) scripts bind themselfes to some default key.
 Copy =leader.lua= to your =~~/scripts= directory and =script-modules/leader.lua= to
 your =~~/script-modules= directory.
 
-Options below are default, if you want to change any of those - put those in
-=~~/scripts-opts/leader.conf=
+Default =~~/scripts-opts/leader.conf=:
 
 #+begin_src conf
 leader_key=,
@@ -103,16 +104,21 @@ end)
 
 #+end_src
 ** M-x
+A menu that shows all commands you have available, key bindings and commends (if
+present) and from which you can call any of those commands.
+
+https://i.imgur.com/8zTPTzK.gif - demo
+
 Copy =M-x.lua= to your =~~/scripts= directory and =script-modules/extended-menu.lua=
 to your =~~/script-modules= directory.
 
 *Keybidings* you can see in [[file:script-modules/README.org::*Usage (keybindings)][extended menu]] keybindings section.
 
-*** Options
-Options below are default and most of them (except first two) are used only in
-=extended-menu=.
+/Note/: if you also using my ~leader~ script, you will see your leader bindings in
+M-x menu as well.
 
-If you want to change any of those - put those in =~~/scripts-opts/M-x.conf=
+*** Options
+=~~/scripts-opts/M-x.conf=:
 
 #+begin_src conf
 strip_cmd_at=65 # strip cmd name
@@ -139,6 +145,10 @@ query. For instance if you don't want to search in comments to commands then
 just omit it from initial table.
 
 ** Chapters menu
+No demo here since it has basically same functionality as [[*M-x][M-x]] but instead of
+commands you choose chapters of current video if those are provided. These 2
+scripts share same script-module.
+
 Copy =M-x.lua= to your =~~/scripts= directory and =script-modules/extended-menu.lua=
 to your =~~/script-modules= directory.
 
@@ -163,4 +173,4 @@ index_field=index
 filter_by_fields=[ "content" ]
 #+end_src
 
-Keybidings you can see in [[file:script-modules/README.org::*Usage (keybindings)][extended menu]] keybindings section.
+Keybindings you can see in [[file:script-modules/README.org::*Usage (keybindings)][extended menu]] keybindings section.
