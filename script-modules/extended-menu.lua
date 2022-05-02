@@ -370,21 +370,20 @@ function em:filter()
   return result
 end
 
--- TODO: implement fuzzy search and match highlights
+-- TODO: implement fuzzy search and maybe match highlights
 function em:search_method(str)
   -- also might be redefined by main script
 
   -- convert to string just to make sure..
-  return tostring(str):lower():find(self.line:lower())
+  return tostring(str):lower():find(self.line:lower(), 1, true)
 end
 
 -- this module requires submit function to be defined in main script
 function em:submit() self:update('no_submit_provided') end
 
 function em:update_list(list)
-  -- for now this func doesn't handle cases when we have 'current_i'
-  -- to update it
-
+  -- for now this func doesn't handle cases when we have 'current_i' to update
+  -- it
   self.list.full = list
   if self.line ~= self.prev_line then self:filter_wrapper() end
 end

@@ -120,14 +120,21 @@ end
 function leader:set_leader_bindings(bindings)
 
   local function get_full_cmd_name(cmd)
+    -- for now i decided to not implement 'guess' logic on which command user
+    -- wants to fire, cuz it will make things less obvious and i'd rather have
+    -- user explicitly state which functions he wants to call rather than guess
+    -- it. I'm only applying this to script-bindings, which full names i find
+    -- by 'name' stated when they were defined.
+
     local b_list = mp.get_property_native("input-bindings")
 
+    -- if there is no spaces, look for full name if present
     -- supposing there's gonna be only one match
-    for _,v in ipairs(b_list) do
-      -- gsub for stripping several spaces, since in input.conf those r common
-      local cmd_no_double_spaces = v.cmd:gsub('%s+', ' ')
-      if cmd_no_double_spaces:find(cmd, 1, true) then return v.cmd end
+    for _,binding in ipairs(b_list) do
+      -- if it's a script-binding - find and return it's full name
+      if binding.cmd:find(cmd, 1, true) then return binding.cmd end
     end
+
   end
 
   local function set(_bindings, prefix_sequence)
@@ -145,19 +152,22 @@ function leader:set_leader_bindings(bindings)
         -- recursively call this function to set inner bindings, do not return
         set(innerBindings, prefix_sequence .. key)
       else
-        local seek = name:find('seek', 1, true)
+        local local_name
 
-        if seek then print(name, 'type') end
-
-        name = get_full_cmd_name(name)
-
-        if seek then print(name, 'type2') end
+        -- if command contains space, most likely it is not script-binding, but
+        -- this thing still needs a REVIEW, cuz i think it is not reliable
+        -- enough
+        if not name:match('.*%s.*') then
+          name = get_full_cmd_name(name) or name
+        else
+          -- gsub for stripping several spaces, since in input.conf those r common
+          name = name:gsub('%s+', ' ')
+        end
 
         table.insert(self.leader_bindings, {
                        key = prefix_sequence .. key,
                        cmd = name,
                        comment = comment})
-
       end
     end
 
@@ -165,7 +175,16 @@ function leader:set_leader_bindings(bindings)
 
   set(bindings)
 
+  self:provide_leader_bindings()
+
+end
+
+-- send leader bindings to M-x
+function leader:provide_leader_bindings()
+  -- Maybe this func might be extended / made public in the future so people can
+  -- redefine it and instead there's gonna be a wrapper of it in this script
   local bindings_json = utils.format_json(self.leader_bindings)
+  print('provided')
   mp.commandv("script-message-to", "M_x", "merge-leader-bindings",
               bindings_json, opts.leader_key)
 end
@@ -309,7 +328,7 @@ function leader:update(params)
       if current_matchings[i].name == 'prefix' then cmd = '+' .. cmd end
 
       a:append(get_font_color('key'))
-      a:append(keys)
+      a:append(self:ass_escape(keys))
       a:append(get_font_color('comment'))
       a:append('\\h→\\h')
       -- in case current key is not pre-last one - show kbd as 'prefix'
@@ -317,10 +336,9 @@ function leader:update(params)
                  (#keys == 1 and current_matchings[i].name ~= 'prefix')
                  and 'command'
                  or 'prefix'))
-      a:append(#keys == 1 and cmd or '+prefix')
+      a:append(#keys == 1 and self:ass_escape(cmd) or '+prefix')
       -- 2 for 2 spaces between columns
-      a:append(get_spaces(opts.strip_cmd_at + 2 -
-                          #current_matchings[i].cmd))
+      a:append(get_spaces(opts.strip_cmd_at + 2 - #cmd))
     end
 
     for i=1,which_key_lines_amount do
@@ -338,9 +356,9 @@ function leader:update(params)
 
       -- compose lines out of elements A(n) and A(n+6)
       local j = i
-      while current_matchings[j + 6] do
-        get_line(j+6)
-        j = j + 6
+      while current_matchings[j + which_key_lines_amount] do
+        get_line(j + which_key_lines_amount)
+        j = j + which_key_lines_amount
       end
     end
 
