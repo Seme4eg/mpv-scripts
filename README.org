@@ -1,7 +1,8 @@
 #+TITLE: MPV scripts
 
 ** Leader
-Adds /leader/ key to your mpv. With prefixes and [[https://github.com/justbur/emacs-which-key][which-key]] functionality.
+Adds /leader/ key to your mpv. With prefixes and [[https://github.com/justbur/emacs-which-key][which-key]] functionality. Allows
+for 'mnemonic' command calling.
 
 https://i.imgur.com/dUWFu3u.gif - demo
 
@@ -84,25 +85,15 @@ will result in ~sa+~ keybinding for ~increase-font~ command.
 Pass it to ~set_leader_bindings~ func, which can be found in the end of
 =~~/scripts/leader.lua=
 
-*** Todos [1/3]
+*** Todos [1/4]
 **** TODO Find good spot to sort bindings by key, to show in which-key in alphabetical order
-**** TODO Move my bidings table somewhere else
-In future plans i want to move my keybinding object definition out of the script file so the user just has an example somewhere.
+**** TODO Move my bindings table somewhere else
+Move my keybinding object definition out of the script file so the user just has
+an example somewhere. And also current realisation will cause conflicts when
+pulling from master since everyone will have his own bindings object.
 
 **** DONE Upon init set all leader bindings to M-x and merge it there
-I don't wana risk and mess something up by merging leader bindings with native
-prop so ima just merge those with script inner value
-
-#+begin_src lua
-mp.commandv("script-message-to", "user_input", "request-user-input", opts)
-
--- and register them in script itself
-mp.register_script_message("request-user-input", function(...)
-    local success, err = pcall(input_request, ...)
-    if not success then msg.error(err) end
-end)
-
-#+end_src
+**** TODO move recently called commands to top of M-x menu list
 ** M-x
 A menu that shows all commands you have available, key bindings and commends (if
 present) and from which you can call any of those commands.

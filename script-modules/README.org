@@ -1,7 +1,10 @@
 #+TITLE: Extended menu
 
-** Extended menu
-*** Opts
+Menu-API, which will allow you to conveniently work with whichever data you pass
+in. Examples of how this menu looks/is used you can look up in /M-x/ and
+/chapter-list/ scripts in this repo.
+
+** Opts
 Most of them are selfexplanatory, if they ain't - there are comments in source
 
 #+begin_src conf
@@ -32,7 +35,7 @@ like ~{'key': .., 'comment': .., 'value': ..}~ and ~filter_by_fields~ you set
 "comment" and "value" then the script will search only those 2 fields in each
 table entry and will omit /key/.
 
-*** Script methods
+** Script methods
 *Require definition in main script:*
 - ~submit(val)~ - assuming you passed correct 'data' format to init() will
    return data[i], which shall contain full list
@@ -53,7 +56,11 @@ table entry and will omit /key/.
 There is also a section /HELPER FUNCTIONS/ in the script, which you can look
 through and maybe find something useful for your needs.
 
-*** Setting up
+And whenever the list with which you are working at the moment gets updated (and
+if you are handling it on your side) - call ~update_list~ passing updated list as
+an argument there.
+
+** Setting up
 Include =extended-menu= script:
 
 #+begin_src lua
@@ -84,7 +91,7 @@ mp.add_key_binding(opts.your_keybinding, "chapters-menu", function()
                     chapter_menu:init({list = {'chapter 1', 'chapter 2'}})
 end)
 #+end_src
-*** Usage (keybindings)
+** Usage (keybindings)
 These key bindings start to work when the menu is opened:
 - ~ctrl+[~, ~ctrl+g~, ~esc~ - close extended menu
 - ~enter~, ~kp_enter~, ~ctrl+m~ - enter key (handles submit (should be defined by you))
@@ -110,8 +117,8 @@ These key bindings start to work when the menu is opened:
 # shift+ins, mbtn_mid - self:paste(false) end
 # kp_dec - self:handle_char_input(.) end    
 
-*** Todos [0/1]
-**** TODO how to put /text_color/ variable in JSON in .conf file?
+** Todos [0/1]
+*** TODO how to put /text_color/ variable in JSON in .conf file?
 Didn't work:
 
 #+begin_src conf

@@ -605,43 +605,6 @@ function em:clear()
   self:update()
 end
 
--- TODO: bind this to C-h maybe
-function em:help_command(param)
-  local cmdlist = mp.get_property_native('command-list')
-  local output = ''
-  if param == '' then
-    output = 'Available commands:\n'
-    for _, cmd in ipairs(cmdlist) do
-      output = output  .. '  ' .. cmd.name
-    end
-    output = output .. '\n'
-    output = output .. 'Use "help command" to show information about a command.\n'
-    output = output .. "ESC or Ctrl+d exits the console.\n"
-  else
-    local cmd = nil
-    for _, curcmd in ipairs(cmdlist) do
-      if curcmd.name:find(param, 1, true) then
-        cmd = curcmd
-        if curcmd.name == param then
-          break -- exact match
-        end
-      end
-    end
-    output = output .. 'Command "' .. cmd.name .. '"\n'
-    for _, arg in ipairs(cmd.args) do
-      output = output .. '    ' .. arg.name .. ' (' .. arg.type .. ')'
-      if arg.optional then
-        output = output .. ' (optional)'
-      end
-      output = output .. '\n'
-    end
-    if cmd.vararg then
-      output = output .. 'This command supports variable arguments.\n'
-    end
-  end
-  -- log_add('', output)
-end
-
 -- Run the current command and clear the line (Enter)
 function em:handle_enter()
   if #self:current() == 0 then
@@ -653,17 +616,7 @@ function em:handle_enter()
     self.history[#self.history + 1] = self.line
   end
 
-  -- TODO: which key? ^-^
-  -- match "help [<text>]", return <text> or "", strip all whitespace
-  local help = self.line:match('^%s*help%s+(.-)%s*$') or
-    (self.line:match('^%s*help$') and '')
-  if help then
-    self:help_command(help)
-  else
-    -- mp.command(self.line)
-    self:submit(self:current()[self.list.pointer_i])
-  end
-
+  self:submit(self:current()[self.list.pointer_i])
   self:set_active(false)
 end
 

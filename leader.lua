@@ -1,6 +1,18 @@
 local mp = require 'mp' -- isn't actually required, mp still gonna be defined
 
-local opts = {}
+local opts = {
+  leader_key = ',',
+  pause_on_open = false,
+  resume_on_exit = "only-if-was-paused", -- another possible value is true
+  hide_timeout = 2, -- timeout in seconds to hide menu
+  which_key_show_delay = 0.1, -- timeout in seconds to show which-key menu
+  strip_cmd_at = 28, -- max symbols for cmd names in which-key menu
+
+  -- styles
+  font_size = 21,
+  menu_x_padding = 3, -- this padding for now applies only to 'left', not x
+  which_key_menu_y_padding = 3,
+}
 
 (require 'mp.options').read_options(opts, mp.get_script_name())
 
