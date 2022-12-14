@@ -31,6 +31,7 @@ local opts = {
 
   search_heading = 'M-x',
   filter_by_fields = {'cmd', 'key', 'comment'},
+  column_layout = false,
 }
 
 (require 'mp.options').read_options(opts, mp.get_script_name())
@@ -174,7 +175,13 @@ function em:get_line(_, v)
       a:append(self:get_font_color('comment'))
       a:append(cmd)
       a:append('\\h(' .. key .. ')')
-      a:append(get_spaces(comment_offset - cmdkbd_len))
+
+      if opts.column_layout then
+        a:append(get_spaces(comment_offset - cmdkbd_len))
+      else
+        a:append(' ')
+      end
+
       a:append('(' .. why_inactive .. ')')
       return a.text
     end
@@ -184,7 +191,13 @@ function em:get_line(_, v)
     a:append(self:get_font_color('accent'))
     a:append('\\h(' .. key .. ')')
     a:append(self:get_font_color('comment'))
-    a:append(get_spaces(comment_offset - cmdkbd_len))
+
+    if opts.column_layout then
+      a:append(get_spaces(comment_offset - cmdkbd_len))
+    else
+      a:append(' ')
+    end
+
     a:append(comment and comment or '')
     return a.text
 end

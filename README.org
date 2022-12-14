@@ -129,6 +129,7 @@ menu_y_padding=2
 
 search_heading=M-x # heading text of a search bar
 filter_by_fields=[ "cmd", "key", "comment" ] # look for explanation below
+column_layout=no
 #+end_src
 
 ~filter_by_fields~ option will determine in which fields to look for your search
