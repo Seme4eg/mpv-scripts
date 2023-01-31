@@ -15,6 +15,8 @@ resume_on_exit=only-if-was-paused # another possible value is true
 
 # styles
 font_size=21
+# cursor 'width', useful to change if you have hidpi monitor
+cursor_x_border=0.3
 line_bottom_margin=1 # basically space between lines
 text_color=[ "default":'ffffff',"accent":'d8a07b',"current":'aaaaaa',"comment":'636363' ]
 menu_x_padding=5 # this padding for now applies only to left not x

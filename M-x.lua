@@ -16,6 +16,8 @@ local opts = {
 
   -- styles
   font_size=21,
+  -- cursor 'width', useful to change if you have hidpi monitor
+  cursor_x_border = 0.3,
   line_bottom_margin = 1,
   -- TODO: how to put it in JSON in .conf file?
   -- text_color=[ "default":"000000","accent":"d8a07b","current":"aaaaaa","comment":"ffffff" ]

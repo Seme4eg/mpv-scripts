@@ -25,6 +25,8 @@ local em = {
   -- styles (earlyer it was a table, but required many more steps to pass def-s
   --            here from .conf file)
   font_size = 21,
+  -- cursor 'width', useful to change if you have hidpi monitor
+  cursor_x_border = 0.3,
   line_bottom_margin = 1, -- basically space between lines
   text_color = {
     default = 'ffffff',
@@ -224,7 +226,7 @@ function em:update(err_code)
     -- TODO: maybe do it using draw_rect from ass?
     local cglyph = '{\\r' .. -- styles reset
         '\\1c&Hffffff&\\3c&Hffffff' .. -- font color and border color
-        '\\xbord0.3\\p4\\pbo24}' .. -- xborder, scale x8 and baseline offset
+        '\\xbord' .. self.cursor_x_border .. '\\p4\\pbo24}' .. -- xborder, scale x8 and baseline offset
         'm 0 0 l 0 ' .. cheight .. -- drawing just a line
         '{\\p0\\r}' -- finish drawing and reset styles
     local before_cur = self:ass_escape(self.line:sub(1, self.cursor - 1))

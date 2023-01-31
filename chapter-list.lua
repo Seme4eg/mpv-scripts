@@ -12,6 +12,8 @@ local opts = {
 
   -- styles
   font_size = 21,
+  -- cursor 'width', useful to change if you have hidpi monitor
+  cursor_x_border = 0.3,
   line_bottom_margin = 1,
   menu_x_padding = 5,
   menu_y_padding = 2,
