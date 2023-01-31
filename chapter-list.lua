@@ -11,25 +11,25 @@ local opts = {
   resume_on_exit = "only-if-was-paused",
 
   -- styles
-  font_size=21,
+  font_size = 21,
   line_bottom_margin = 1,
   menu_x_padding = 5,
   menu_y_padding = 2,
 
   search_heading = 'Select chapter',
   index_field = 'index',
-  filter_by_fields = {'content'},
+  filter_by_fields = { 'content' },
 }
 
 (require 'mp.options').read_options(opts, mp.get_script_name())
 
 package.path =
-  mp.command_native({"expand-path", "~~/script-modules/?.lua;"})..package.path
+mp.command_native({ "expand-path", "~~/script-modules/?.lua;" }) .. package.path
 local em = require "extended-menu"
 
 local chapter_menu = em:new(opts)
 
-local chapter = {list = {}, current_i = nil}
+local chapter = { list = {}, current_i = nil }
 
 local function get_chapters()
   local chaptersCount = mp.get_property("chapter-list/count")
@@ -39,10 +39,10 @@ local function get_chapters()
     local chaptersArr = {}
 
     -- We need to start from 0 here cuz mp returns titles starting with 0
-    for i=0, chaptersCount do
-      local chapterTitle = mp.get_property_native("chapter-list/"..i.."/title")
+    for i = 0, chaptersCount do
+      local chapterTitle = mp.get_property_native("chapter-list/" .. i .. "/title")
       if chapterTitle then
-        table.insert(chaptersArr, {index = i + 1, content = chapterTitle})
+        table.insert(chaptersArr, { index = i + 1, content = chapterTitle })
       end
     end
 
@@ -71,5 +71,5 @@ mp.observe_property("chapter", "number", chapter_info_update)
 
 -- keybind to launch menu
 mp.add_key_binding(opts.toggle_menu_binding, "chapters-menu", function()
-                     chapter_menu:init(chapter)
+  chapter_menu:init(chapter)
 end)

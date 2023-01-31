@@ -48,7 +48,7 @@ function leader:init(options)
 
   -- keybind to launch menu
   mp.add_forced_key_binding(opts.leader_key, "leader", function()
-                       self:start_key_sequence()
+    self:start_key_sequence()
   end)
 end
 
@@ -73,12 +73,11 @@ function leader:get_matching_commands()
 
   -- include all prefixes on n-th level that match current key sequence
   for prefix, name in pairs(self.prefixes) do
-    if
-      #prefix == #self.key_sequence + 1
-      and prefix:sub(1, #self.key_sequence):find(self.key_sequence, 1, true)
+    if #prefix == #self.key_sequence + 1
+        and prefix:sub(1, #self.key_sequence):find(self.key_sequence, 1, true)
     then
       table.insert(result,
-                   {key = prefix, name = 'prefix', cmd = name.prefix_name})
+        { key = prefix, name = 'prefix', cmd = name.prefix_name })
     end
   end
 
@@ -86,7 +85,7 @@ function leader:get_matching_commands()
   -- self.leader_bidnings with key.length == 1
   if #self.key_sequence == 0 then
     -- include all commands that consist of only 1 key
-    for i,v in ipairs(self.leader_bindings) do
+    for i, v in ipairs(self.leader_bindings) do
       if #v.key == 1 then
         table.insert(result, v)
       end
@@ -94,7 +93,7 @@ function leader:get_matching_commands()
   else -- in case there is at least 1 key pressed after leadre handle prefixes
 
     -- include all commands that consist of only 1 key
-    for i,v in ipairs(self.matching_commands) do
+    for i, v in ipairs(self.matching_commands) do
       if #v.key == #self.key_sequence + 1 then
         table.insert(result, v)
       end
@@ -109,7 +108,7 @@ end
 
 function leader:update_matching_commands(kbd)
   self.matching_commands = {}
-  for _,v in ipairs(self.leader_bindings) do
+  for _, v in ipairs(self.leader_bindings) do
     -- exact match of the beginning of the string
     if v.key:sub(1, #kbd):find(kbd, 1, true) then
       table.insert(self.matching_commands, v)
@@ -130,7 +129,7 @@ function leader:set_leader_bindings(bindings)
 
     -- if there is no spaces, look for full name if present
     -- supposing there's gonna be only one match
-    for _,binding in ipairs(b_list) do
+    for _, binding in ipairs(b_list) do
       -- if it's a script-binding - find and return it's full name
       if binding.cmd:find(cmd, 1, true) then return binding.cmd end
     end
@@ -143,12 +142,12 @@ function leader:set_leader_bindings(bindings)
 
     prefix_sequence = prefix_sequence or ''
 
-    for _,binding in ipairs(_bindings) do
+    for _, binding in ipairs(_bindings) do
       key, name, comment, innerBindings = table.unpack(binding)
 
       if name == 'prefix' then
         -- fill prefixes object with prefixes names
-        self.prefixes[prefix_sequence .. key] = {prefix_name = comment}
+        self.prefixes[prefix_sequence .. key] = { prefix_name = comment }
         -- recursively call this function to set inner bindings, do not return
         set(innerBindings, prefix_sequence .. key)
       else
@@ -165,9 +164,10 @@ function leader:set_leader_bindings(bindings)
         end
 
         table.insert(self.leader_bindings, {
-                       key = prefix_sequence .. key,
-                       cmd = name,
-                       comment = comment})
+          key = prefix_sequence .. key,
+          cmd = name,
+          comment = comment
+        })
       end
     end
 
@@ -186,7 +186,7 @@ function leader:provide_leader_bindings()
   local bindings_json = utils.format_json(self.leader_bindings)
   print('provided')
   mp.commandv("script-message-to", "M_x", "merge-leader-bindings",
-              bindings_json, opts.leader_key)
+    bindings_json, opts.leader_key)
 end
 
 -- opts: {is_prefix = Bool, is_undefined_kbd = Bool}
@@ -216,7 +216,7 @@ function leader:update(params)
 
   -- y pos where to start drawing which key (1 is pixels from divider line)
   local which_key_y_offset = menu_y_pos - 1 - opts.font_size *
-    which_key_lines_amount - opts.which_key_menu_y_padding * 2
+      which_key_lines_amount - opts.which_key_menu_y_padding * 2
 
   -- function to get rid of some copypaste
   local function ass_new_wrapper()
@@ -265,7 +265,7 @@ function leader:update(params)
 
   local function get_display_kbd()
     local str = ''
-    for char in self.key_sequence:gmatch'.' do
+    for char in self.key_sequence:gmatch '.' do
       str = str .. char .. ' '
     end
     return str:gsub("(.-)%s*$", "%1")
@@ -275,7 +275,7 @@ function leader:update(params)
     local a = ass_new_wrapper()
     a:pos(opts.menu_x_padding, menu_y_pos)
     a:append(self:ass_escape(opts.leader_key) ..
-             (#self.key_sequence == 0 and '' or '\\h'))
+      (#self.key_sequence == 0 and '' or '\\h'))
     a:append(self:ass_escape(get_display_kbd()))
 
     a:append(params.is_undefined_kbd and '\\his undefined' or "-")
@@ -303,7 +303,7 @@ function leader:update(params)
   local function get_spaces(num)
     -- returns num-length string full of spaces
     local s = ''
-    for _=1,num do s = s .. '\\h' end
+    for _ = 1, num do s = s .. '\\h' end
     return s
   end
 
@@ -316,13 +316,13 @@ function leader:update(params)
     local function get_line(i)
       -- get remaining keys of currently matching commands
       local keys = current_matchings[i].key:gsub(self.key_sequence ..
-                                                     '(.*)$', '%1')
+        '(.*)$', '%1')
 
       -- if cmd is longer than max length - strip it
       local cmd = #current_matchings[i].cmd > opts.strip_cmd_at
-        and string.sub(current_matchings[i].cmd, 1,
-                       opts.strip_cmd_at - 3) .. '...'
-        or current_matchings[i].cmd
+          and string.sub(current_matchings[i].cmd, 1,
+            opts.strip_cmd_at - 3) .. '...'
+          or current_matchings[i].cmd
 
       -- prepend all prefix names with '+'
       if current_matchings[i].name == 'prefix' then cmd = '+' .. cmd end
@@ -333,17 +333,17 @@ function leader:update(params)
       a:append('\\h→\\h')
       -- in case current key is not pre-last one - show kbd as 'prefix'
       a:append(get_font_color(
-                 (#keys == 1 and current_matchings[i].name ~= 'prefix')
-                 and 'command'
-                 or 'prefix'))
+        (#keys == 1 and current_matchings[i].name ~= 'prefix')
+        and 'command'
+        or 'prefix'))
       a:append(#keys == 1 and self:ass_escape(cmd) or '+prefix')
       -- 2 for 2 spaces between columns
       a:append(get_spaces(opts.strip_cmd_at + 2 - #cmd))
     end
 
-    for i=1,which_key_lines_amount do
+    for i = 1, which_key_lines_amount do
       local y_offset = which_key_y_offset + opts.which_key_menu_y_padding +
-        opts.font_size * (i - 1)
+          opts.font_size * (i - 1)
 
       a:new_event()
       -- reset styles
@@ -368,9 +368,9 @@ function leader:update(params)
 
   leader.ass.res_x = ww
   leader.ass.res_y = wh
-  leader.ass.data = table.concat({get_background(),
-                                  get_input_string(),
-                                  which_key()}, "\n")
+  leader.ass.data = table.concat({ get_background(),
+    get_input_string(),
+    which_key() }, "\n")
 
   leader.ass:update()
 
@@ -397,15 +397,15 @@ function leader:set_active(active, delayed)
     self:undefine_key_bindings()
 
     if opts.resume_on_exit == true or
-      (opts.resume_on_exit == "only-if-was-paused" and self.was_paused) then
-        mp.set_property_bool("pause", false)
+        (opts.resume_on_exit == "only-if-was-paused" and self.was_paused) then
+      mp.set_property_bool("pause", false)
     end
 
     -- clearing up
     self.key_sequence = ''
     self.was_paused = false
-    self.close_timer = mp.add_timeout((delayed and opts.hide_timeout or 0), function ()
-        self:update()
+    self.close_timer = mp.add_timeout((delayed and opts.hide_timeout or 0), function()
+      self:update()
     end)
     collectgarbage()
   end
@@ -421,29 +421,29 @@ function leader:handle_input(c)
   end
 
   if #self.matching_commands == 0 then
-    self:update({is_undefined_kbd = true})
+    self:update({ is_undefined_kbd = true })
     self:set_active(false, true)
   end
 
   if #self.matching_commands > 1 then
-    self:update({is_prefix = true}) -- show just leader string
+    self:update({ is_prefix = true }) -- show just leader string
 
-      -- and set timeout to show which-key
+    -- and set timeout to show which-key
     self.which_key_timer = mp.add_timeout(
-      opts.which_key_show_delay, function ()
-        self:update({is_prefix = true})
+      opts.which_key_show_delay, function()
+      self:update({ is_prefix = true })
     end)
   end
 
   if #self.matching_commands == 1 then
     -- if key sequence matches only one command, but key sequence isn't full..
     if #self.matching_commands[1].key ~= #self.key_sequence then
-      self:update({is_prefix = true}) -- show just leader string
+      self:update({ is_prefix = true }) -- show just leader string
 
       -- and set timeout to show which-key
       self.which_key_timer = mp.add_timeout(
-        opts.which_key_show_delay, function ()
-          self:update({is_prefix = true})
+        opts.which_key_show_delay, function()
+        self:update({ is_prefix = true })
       end)
 
       return
@@ -451,7 +451,7 @@ function leader:handle_input(c)
 
     -- in case there is bound command to that key, but it's undefined..
     if not self.matching_commands[1].cmd then
-      self:update({is_undefined_kbd = true})
+      self:update({ is_undefined_kbd = true })
       self:set_active(false, true)
       return
     end
@@ -463,14 +463,13 @@ function leader:handle_input(c)
   end
 end
 
-
 --[[
   The below code is a modified implementation of text input from mpv's console.lua:
   https://github.com/mpv-player/mpv/blob/87c9eefb2928252497f6141e847b74ad1158bc61/player/lua/console.lua
 
   I was too lazy to list all modifications i've done to the script, but if u
   rly need to see those - do diff with the original code
-]]--
+]] --
 
 -------------------------------------------------------------------------------
 --                          START ORIGINAL MPV CODE                          --
@@ -511,18 +510,18 @@ end
 -- bindings and readline bindings.
 function leader:get_bindings()
   local bindings = {
-    { 'ctrl+[',      function() self:set_active(false) end           },
-    { 'ctrl+g',      function() self:set_active(false) end           },
-    { 'esc',         function() self:set_active(false) end           },
-    { 'enter',       function() self:handle_input('enter') end },
-    { 'bs',          function() self:handle_input('bs') end    },
+    { 'ctrl+[', function() self:set_active(false) end },
+    { 'ctrl+g', function() self:set_active(false) end },
+    { 'esc', function() self:set_active(false) end },
+    { 'enter', function() self:handle_input('enter') end },
+    { 'bs', function() self:handle_input('bs') end },
 
     -- { 'ctrl+h',      function() self:handle_backspace() end        },
   }
 
   for i = 0, 9 do
     bindings[#bindings + 1] =
-      {'kp' .. i, function() self:handle_input('' .. i) end}
+    { 'kp' .. i, function() self:handle_input('' .. i) end }
   end
 
   return bindings
@@ -530,7 +529,7 @@ end
 
 function leader:text_input(info)
   if info.key_text and (info.event == "press" or info.event == "down"
-                        or info.event == "repeat")
+      or info.event == "repeat")
   then
     self:handle_input(info.key_text)
   end
@@ -543,11 +542,11 @@ function leader:define_key_bindings()
     -- Generate arbitrary name for removing the bindings later.
     local name = "leader_" .. (#self.key_bindings + 1)
     self.key_bindings[#self.key_bindings + 1] = name
-    mp.add_forced_key_binding(bind[1], name, bind[2], {repeatable = true})
+    mp.add_forced_key_binding(bind[1], name, bind[2], { repeatable = true })
   end
-  mp.add_forced_key_binding("any_unicode", "leader_input", function (...)
-                              self:text_input(...)
-  end, {repeatable = true, complex = true})
+  mp.add_forced_key_binding("any_unicode", "leader_input", function(...)
+    self:text_input(...)
+  end, { repeatable = true, complex = true })
   self.key_bindings[#self.key_bindings + 1] = "leader_input"
 end
 

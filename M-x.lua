@@ -30,19 +30,19 @@ local opts = {
   menu_y_padding = 2,
 
   search_heading = 'M-x',
-  filter_by_fields = {'cmd', 'key', 'comment'},
+  filter_by_fields = { 'cmd', 'key', 'comment' },
   column_layout = false,
 }
 
 (require 'mp.options').read_options(opts, mp.get_script_name())
 
 package.path =
-  mp.command_native({"expand-path", "~~/script-modules/?.lua;"})..package.path
+mp.command_native({ "expand-path", "~~/script-modules/?.lua;" }) .. package.path
 local em = require "extended-menu"
 
 local mx_menu = em:new(opts)
 
-local data = {list = {}}
+local data = { list = {} }
 
 function mx_menu:submit(val)
   mp.msg.info(val.cmd)
@@ -51,11 +51,11 @@ end
 
 local function sort_cmd_list()
   table.sort(data.list, function(i, j)
-               if opts.sort_commands_by == 'priority' then
-                 return tonumber(i.priority) > tonumber(j.priority)
-               end
-               -- sort by command name by default
-               return i.cmd < j.cmd
+    if opts.sort_commands_by == 'priority' then
+      return tonumber(i.priority) > tonumber(j.priority)
+    end
+    -- sort by command name by default
+    return i.cmd < j.cmd
   end)
 end
 
@@ -64,8 +64,8 @@ local function get_cmd_list()
 
   -- sets a flag 'shadowed' to all binding that have a binding with higher
   -- priority using same key binding
-  for _,v in ipairs(bindings) do
-    for _,v1 in ipairs(bindings) do
+  for _, v in ipairs(bindings) do
+    for _, v1 in ipairs(bindings) do
       if v.key == v1.key and v.priority < v1.priority then
         v.shadowed = true
         break
@@ -89,13 +89,13 @@ local function merge_leader_bindings(le, leader_key)
 
   local function split_with_spaces(str)
     local result_str = ''
-    for char in str:gmatch'.' do result_str = result_str .. char .. ' ' end
+    for char in str:gmatch '.' do result_str = result_str .. char .. ' ' end
     return result_str:gsub("(.-)%s*$", "%1") -- strip spaces
   end
 
-  for i,lb in ipairs(le) do
+  for i, lb in ipairs(le) do
     -- overwriting binding in data.list
-    for y,b in ipairs(data.list) do
+    for y, b in ipairs(data.list) do
       if b.cmd:find(lb.cmd, 1, true) then
         data.list[y].priority = 13
         data.list[y].key = leader_key .. ' ' .. split_with_spaces(lb.key)
@@ -126,7 +126,7 @@ local function merge_leader_bindings(le, leader_key)
     ::continue1::
   end
 
-  for i,v in ipairs(bindings_to_append) do table.insert(data.list, v) end
+  for i, v in ipairs(bindings_to_append) do table.insert(data.list, v) end
 
   sort_cmd_list()
 
@@ -139,58 +139,42 @@ end
 
 -- [i]ndex [v]alue
 function em:get_line(_, v)
-    local a = assdraw.ass_new()
-    -- 20 is just a hardcoded value, cuz i don't think any keybinding string
-    -- length might exceed this value
-    local comment_offset = opts.strip_cmd_at + 20
+  local a = assdraw.ass_new()
+  -- 20 is just a hardcoded value, cuz i don't think any keybinding string
+  -- length might exceed this value
+  local comment_offset = opts.strip_cmd_at + 20
 
-    local cmd = v.cmd
+  local cmd = v.cmd
 
-    if #cmd > opts.strip_cmd_at then
-      cmd = string.sub(cmd, 1, opts.strip_cmd_at - 3) .. '...'
-    end
+  if #cmd > opts.strip_cmd_at then
+    cmd = string.sub(cmd, 1, opts.strip_cmd_at - 3) .. '...'
+  end
 
-    -- we need to count length of strings without escaping chars, so we
-    -- calculate it before defining excaped strings
-    local cmdkbd_len = #(cmd .. v.key) + 3 -- 3 is ' ()'
+  -- we need to count length of strings without escaping chars, so we
+  -- calculate it before defining excaped strings
+  local cmdkbd_len = #(cmd .. v.key) + 3 -- 3 is ' ()'
 
-    cmd = self:ass_escape(cmd)
-    local key = self:ass_escape(v.key)
-    -- 'comment' field might be nil
-    local comment = self:ass_escape(v.comment or '')
+  cmd = self:ass_escape(cmd)
+  local key = self:ass_escape(v.key)
+  -- 'comment' field might be nil
+  local comment = self:ass_escape(v.comment or '')
 
-    local function get_spaces(num)
-      -- returns num-length string full of spaces
-      local s = ''
-      for _=1,num do s = s .. '\\h' end
-      return s
-    end
+  local function get_spaces(num)
+    -- returns num-length string full of spaces
+    local s = ''
+    for _ = 1, num do s = s .. '\\h' end
+    return s
+  end
 
-    -- handle inactive keybindings
-    if v.shadowed or v.priority == -1 then
-      local why_inactive = (v.priority == -1)
+  -- handle inactive keybindings
+  if v.shadowed or v.priority == -1 then
+    local why_inactive = (v.priority == -1)
         and 'inactive keybinding'
         or 'that binding is currently shadowed by another one'
 
-      a:append(self:get_font_color('comment'))
-      a:append(cmd)
-      a:append('\\h(' .. key .. ')')
-
-      if opts.column_layout then
-        a:append(get_spaces(comment_offset - cmdkbd_len))
-      else
-        a:append(' ')
-      end
-
-      a:append('(' .. why_inactive .. ')')
-      return a.text
-    end
-
-    a:append(self:get_font_color('default'))
-    a:append(cmd)
-    a:append(self:get_font_color('accent'))
-    a:append('\\h(' .. key .. ')')
     a:append(self:get_font_color('comment'))
+    a:append(cmd)
+    a:append('\\h(' .. key .. ')')
 
     if opts.column_layout then
       a:append(get_spaces(comment_offset - cmdkbd_len))
@@ -198,8 +182,24 @@ function em:get_line(_, v)
       a:append(' ')
     end
 
-    a:append(comment and comment or '')
+    a:append('(' .. why_inactive .. ')')
     return a.text
+  end
+
+  a:append(self:get_font_color('default'))
+  a:append(cmd)
+  a:append(self:get_font_color('accent'))
+  a:append('\\h(' .. key .. ')')
+  a:append(self:get_font_color('comment'))
+
+  if opts.column_layout then
+    a:append(get_spaces(comment_offset - cmdkbd_len))
+  else
+    a:append(' ')
+  end
+
+  a:append(comment and comment or '')
+  return a.text
 end
 
 local function update_bindings()
@@ -213,13 +213,13 @@ get_cmd_list()
 
 -- and register them in script itself
 mp.register_script_message("merge-leader-bindings", function(bindings, leader_key)
-                             bindings = utils.parse_json(bindings)
-                             merge_leader_bindings(bindings, leader_key)
+  bindings = utils.parse_json(bindings)
+  merge_leader_bindings(bindings, leader_key)
 end)
 
 mp.observe_property('input-bindings', 'native', update_bindings)
 
 -- keybind to launch menu
 mp.add_key_binding(opts.toggle_menu_binding, "M-x", function()
-                     mx_menu:init(data)
+  mx_menu:init(data)
 end)

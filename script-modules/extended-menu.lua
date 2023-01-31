@@ -123,7 +123,7 @@ function em:set_from_to(reset_flag)
   local total = #self:current()
 
   if reset_flag or to_show >= total then
-    self.list.show_from_to = {1, math.min(to_show, total)}
+    self.list.show_from_to = { 1, math.min(to_show, total) }
     return
   end
 
@@ -135,28 +135,28 @@ function em:set_from_to(reset_flag)
     -- set show_from_to so chosen item will be displayed close to middle
     local half_list = math.ceil(to_show / 2)
     if i < half_list then
-      self.list.show_from_to = {1, to_show}
+      self.list.show_from_to = { 1, to_show }
     elseif total - i < half_list then
-      self.list.show_from_to = {total - to_show + 1, total}
+      self.list.show_from_to = { total - to_show + 1, total }
     else
-      self.list.show_from_to = {i - half_list + 1, i - half_list + to_show}
+      self.list.show_from_to = { i - half_list + 1, i - half_list + to_show }
     end
   else
     local first, last = table.unpack(self.list.show_from_to)
 
     -- handle cursor moving towards start / end bondary
     if first ~= 1 and i - first < 2 then
-      self.list.show_from_to = {first - 1, last - 1}
+      self.list.show_from_to = { first - 1, last - 1 }
     end
     if last ~= total and last - i < 2 then
-      self.list.show_from_to = {first + 1, last + 1}
+      self.list.show_from_to = { first + 1, last + 1 }
     end
 
     -- handle index jumps from beginning to end and backwards
     if i > last then
-      self.list.show_from_to = {i - to_show + 1, i}
+      self.list.show_from_to = { i - to_show + 1, i }
     end
-    if i < first then self.list.show_from_to = {1, to_show} end
+    if i < first then self.list.show_from_to = { 1, to_show } end
   end
 end
 
@@ -185,7 +185,7 @@ function em:update(err_code)
   local ww, wh = mp.get_osd_size() -- window width & height
   -- '+ 1' below is a search string
   local menu_y_pos =
-    wh - (line_height * (self.lines_to_show + 1) + self.menu_y_padding * 2)
+  wh - (line_height * (self.lines_to_show + 1) + self.menu_y_padding * 2)
 
   -- didn't find better place to handle filtered list update
   if self.line ~= self.prev_line then self:filter_wrapper() end
@@ -206,14 +206,14 @@ function em:update(err_code)
     a:pos(self.menu_x_padding, menu_y_pos + self.menu_y_padding)
 
     local search_prefix = table.concat({
-        self:get_font_color('accent'),
-        (#self:current() ~= 0 and self.list.pointer_i or '!'),
-        '/', #self:current(), '\\h\\h', self.search_heading, ':\\h'
-    }) ;
+      self:get_font_color('accent'),
+      (#self:current() ~= 0 and self.list.pointer_i or '!'),
+      '/', #self:current(), '\\h\\h', self.search_heading, ':\\h'
+    });
 
     a:append(search_prefix)
     -- reset font color after search prefix
-    a:append(self:get_font_color'default')
+    a:append(self:get_font_color 'default')
 
     -- Create the cursor glyph as an ASS drawing. ASS will draw the cursor
     -- inline with the surrounding text, but it sets the advance to the width
@@ -223,17 +223,17 @@ function em:update(err_code)
     local cheight = self.font_size * 8
     -- TODO: maybe do it using draw_rect from ass?
     local cglyph = '{\\r' .. -- styles reset
-      '\\1c&Hffffff&\\3c&Hffffff' .. -- font color and border color
-      '\\xbord0.3\\p4\\pbo24}' .. -- xborder, scale x8 and baseline offset
-      'm 0 0 l 0 ' .. cheight .. -- drawing just a line
-      '{\\p0\\r}' -- finish drawing and reset styles
+        '\\1c&Hffffff&\\3c&Hffffff' .. -- font color and border color
+        '\\xbord0.3\\p4\\pbo24}' .. -- xborder, scale x8 and baseline offset
+        'm 0 0 l 0 ' .. cheight .. -- drawing just a line
+        '{\\p0\\r}' -- finish drawing and reset styles
     local before_cur = self:ass_escape(self.line:sub(1, self.cursor - 1))
     local after_cur = self:ass_escape(self.line:sub(self.cursor))
 
     a:append(table.concat({
-                 before_cur, cglyph, self:reset_styles(),
-                 self:get_font_color('default'), after_cur,
-                 (err_code and '\\h' .. self.error_codes[err_code] or "")
+      before_cur, cglyph, self:reset_styles(),
+      self:get_font_color('default'), after_cur,
+      (err_code and '\\h' .. self.error_codes[err_code] or "")
     }))
 
     return a.text
@@ -265,10 +265,10 @@ function em:update(err_code)
     -- REVIEW: maybe make another function 'get_line_str' and move there
     -- everything from this for loop?
     -- REVIEW: how to use something like table.unpack below?
-    for i=self.list.show_from_to[1], self.list.show_from_to[2] do
+    for i = self.list.show_from_to[1], self.list.show_from_to[2] do
       local value = assert(self:current()[i], 'no value with index ' .. i)
       local y_offset = menu_y_pos + self.menu_y_padding +
-        (line_height * (i - self.list.show_from_to[1] + 1))
+          (line_height * (i - self.list.show_from_to[1] + 1))
 
       if i == self.list.pointer_i then apply_highlighting(y_offset) end
 
@@ -284,9 +284,9 @@ function em:update(err_code)
   em.ass.res_x = ww
   em.ass.res_y = wh
   em.ass.data = table.concat({
-      get_background(),
-      get_search_header(),
-      get_list()
+    get_background(),
+    get_search_header(),
+    get_list()
   }, "\n")
 
   em.ass:update()
@@ -328,11 +328,11 @@ end
 -- ...
 -- and handle it as follows
 -- init():
-    -- mp.register_idle(idle)
-    -- idle()
+-- mp.register_idle(idle)
+-- idle()
 -- exit():
-    -- mp.unregister_idle(idle)
-    -- idle()
+-- mp.unregister_idle(idle)
+-- idle()
 -- And in these observers he is setting a flag, that's being checked in func above
 -- mp.observe_property("osd-width", "native", mark_geometry_stale)
 -- mp.observe_property("osd-height", "native", mark_geometry_stale)
@@ -347,11 +347,11 @@ function em:filter()
 
   local function get_full_search_str(v)
     local str = ''
-    for _,key in ipairs(self.filter_by_fields) do str = str .. (v[key] or '') end
+    for _, key in ipairs(self.filter_by_fields) do str = str .. (v[key] or '') end
     return str
   end
 
-  for _,v in ipairs(self.list.full) do
+  for _, v in ipairs(self.list.full) do
     -- if filter_by_fields has 0 length, then search list item itself
     if #self.filter_by_fields == 0 then
       if self:search_method(v) then table.insert(result, v) end
@@ -398,7 +398,7 @@ function em:get_line(_, v) -- [i]ndex, [v]alue
   -- String
   local a = assdraw.ass_new()
   local style = (self.list.current_i == v[self.index_field])
-    and 'current' or 'default'
+      and 'current' or 'default'
 
   a:append(self:reset_styles())
   a:append(self:get_font_color(style))
@@ -441,7 +441,7 @@ end
 
   I was too lazy to list all modifications i've done to the script, but if u
   rly need to see those - do diff with the original code
-]]--
+]] --
 
 -------------------------------------------------------------------------------
 --                          START ORIGINAL MPV CODE                          --
@@ -514,8 +514,8 @@ function em:set_active(active)
     self:undefine_key_bindings()
 
     if self.resume_on_exit == true or
-      (self.resume_on_exit == "only-if-was-paused" and self.was_paused) then
-        mp.set_property_bool("pause", false)
+        (self.resume_on_exit == "only-if-was-paused" and self.was_paused) then
+      mp.set_property_bool("pause", false)
     end
 
     self:clear()
@@ -742,23 +742,23 @@ function em:get_clipboard(clip)
 
   if platform == 'x11' then
     local res = utils.subprocess({
-        args = { 'xclip', '-selection', clip and 'clipboard' or 'primary', '-out' },
-        playback_only = false,
+      args = { 'xclip', '-selection', clip and 'clipboard' or 'primary', '-out' },
+      playback_only = false,
     })
     if not res.error then
       return res.stdout
     end
   elseif platform == 'wayland' then
     local res = utils.subprocess({
-        args = { 'wl-paste', clip and '-n' or  '-np' },
-        playback_only = false,
+      args = { 'wl-paste', clip and '-n' or '-np' },
+      playback_only = false,
     })
     if not res.error then
       return res.stdout
     end
   elseif platform == 'windows' then
     local res = utils.subprocess({
-        args = { 'powershell', '-NoProfile', '-Command', [[& {
+      args = { 'powershell', '-NoProfile', '-Command', [[& {
                 Trap {
                     Write-Error -ErrorRecord $_
                     Exit 1
@@ -776,15 +776,15 @@ function em:get_clipboard(clip)
                 $u8clip = [System.Text.Encoding]::UTF8.GetBytes($clip)
                 [Console]::OpenStandardOutput().Write($u8clip, 0, $u8clip.Length)
             }]] },
-        playback_only = false,
+      playback_only = false,
     })
     if not res.error then
       return res.stdout
     end
   elseif platform == 'macos' then
     local res = utils.subprocess({
-        args = { 'pbpaste' },
-        playback_only = false,
+      args = { 'pbpaste' },
+      playback_only = false,
     })
     if not res.error then
       return res.stdout
@@ -808,61 +808,61 @@ end
 -- bindings and readline bindings.
 function em:get_bindings()
   local bindings = {
-    { 'ctrl+[',      function() self:set_active(false) end         },
-    { 'ctrl+g',      function() self:set_active(false) end         },
-    { 'esc',         function() self:set_active(false) end         },
-    { 'enter',       function() self:handle_enter() end            },
-    { 'kp_enter',    function() self:handle_enter() end            },
-    { 'ctrl+m',      function() self:handle_enter() end            },
-    { 'bs',          function() self:handle_backspace() end        },
-    { 'shift+bs',    function() self:handle_backspace() end        },
-    { 'ctrl+h',      function() self:handle_backspace() end        },
-    { 'del',         function() self:handle_del() end              },
-    { 'shift+del',   function() self:handle_del() end              },
-    { 'ins',         function() self:handle_ins() end              },
-    { 'shift+ins',   function() self:paste(false) end              },
-    { 'mbtn_mid',    function() self:paste(false) end              },
-    { 'left',        function() self:prev_char() end               },
-    { 'ctrl+b',      function() self:prev_char() end               },
-    { 'right',       function() self:next_char() end               },
-    { 'ctrl+f',      function() self:next_char() end               },
-    { 'ctrl+k',      function() self:change_selected_index(-1) end },
-    { 'ctrl+p',      function() self:change_selected_index(-1) end },
-    { 'ctrl+j',      function() self:change_selected_index(1) end  },
-    { 'ctrl+n',      function() self:change_selected_index(1) end  },
-    { 'up',          function() self:move_history(-1) end          },
-    { 'alt+p',       function() self:move_history(-1) end          },
-    { 'wheel_up',    function() self:move_history(-1) end          },
-    { 'down',        function() self:move_history(1) end           },
-    { 'alt+n',       function() self:move_history(1) end           },
-    { 'wheel_down',  function() self:move_history(1) end           },
-    { 'wheel_left',  function() end                                },
-    { 'wheel_right', function() end                                },
-    { 'ctrl+left',   function() self:prev_word() end               },
-    { 'alt+b',       function() self:prev_word() end               },
-    { 'ctrl+right',  function() self:next_word() end               },
-    { 'alt+f',       function() self:next_word() end               },
-    { 'ctrl+a',      function() self:go_home() end                 },
-    { 'home',        function() self:go_home() end                 },
-    { 'ctrl+e',      function() self:go_end() end                  },
-    { 'end',         function() self:go_end() end                  },
-    { 'pgup',        function() self:handle_pgup() end             },
-    { 'pgdwn',       function() self:handle_pgdown() end           },
-    { 'ctrl+c',      function() self:clear() end                   },
-    { 'ctrl+d',      function() self:handle_del() end              },
-    { 'ctrl+u',      function() self:del_to_start() end            },
-    { 'ctrl+v',      function() self:paste(true) end               },
-    { 'meta+v',      function() self:paste(true) end               },
-    { 'ctrl+bs',     function() self:del_word() end                },
-    { 'ctrl+w',      function() self:del_word() end                },
-    { 'ctrl+del',    function() self:del_next_word() end           },
-    { 'alt+d',       function() self:del_next_word() end           },
-    { 'kp_dec',      function() self:handle_char_input('.') end    },
+    { 'ctrl+[', function() self:set_active(false) end },
+    { 'ctrl+g', function() self:set_active(false) end },
+    { 'esc', function() self:set_active(false) end },
+    { 'enter', function() self:handle_enter() end },
+    { 'kp_enter', function() self:handle_enter() end },
+    { 'ctrl+m', function() self:handle_enter() end },
+    { 'bs', function() self:handle_backspace() end },
+    { 'shift+bs', function() self:handle_backspace() end },
+    { 'ctrl+h', function() self:handle_backspace() end },
+    { 'del', function() self:handle_del() end },
+    { 'shift+del', function() self:handle_del() end },
+    { 'ins', function() self:handle_ins() end },
+    { 'shift+ins', function() self:paste(false) end },
+    { 'mbtn_mid', function() self:paste(false) end },
+    { 'left', function() self:prev_char() end },
+    { 'ctrl+b', function() self:prev_char() end },
+    { 'right', function() self:next_char() end },
+    { 'ctrl+f', function() self:next_char() end },
+    { 'ctrl+k', function() self:change_selected_index(-1) end },
+    { 'ctrl+p', function() self:change_selected_index(-1) end },
+    { 'ctrl+j', function() self:change_selected_index(1) end },
+    { 'ctrl+n', function() self:change_selected_index(1) end },
+    { 'up', function() self:move_history(-1) end },
+    { 'alt+p', function() self:move_history(-1) end },
+    { 'wheel_up', function() self:move_history(-1) end },
+    { 'down', function() self:move_history(1) end },
+    { 'alt+n', function() self:move_history(1) end },
+    { 'wheel_down', function() self:move_history(1) end },
+    { 'wheel_left', function() end },
+    { 'wheel_right', function() end },
+    { 'ctrl+left', function() self:prev_word() end },
+    { 'alt+b', function() self:prev_word() end },
+    { 'ctrl+right', function() self:next_word() end },
+    { 'alt+f', function() self:next_word() end },
+    { 'ctrl+a', function() self:go_home() end },
+    { 'home', function() self:go_home() end },
+    { 'ctrl+e', function() self:go_end() end },
+    { 'end', function() self:go_end() end },
+    { 'pgup', function() self:handle_pgup() end },
+    { 'pgdwn', function() self:handle_pgdown() end },
+    { 'ctrl+c', function() self:clear() end },
+    { 'ctrl+d', function() self:handle_del() end },
+    { 'ctrl+u', function() self:del_to_start() end },
+    { 'ctrl+v', function() self:paste(true) end },
+    { 'meta+v', function() self:paste(true) end },
+    { 'ctrl+bs', function() self:del_word() end },
+    { 'ctrl+w', function() self:del_word() end },
+    { 'ctrl+del', function() self:del_next_word() end },
+    { 'alt+d', function() self:del_next_word() end },
+    { 'kp_dec', function() self:handle_char_input('.') end },
   }
 
   for i = 0, 9 do
     bindings[#bindings + 1] =
-      {'kp' .. i, function() self:handle_char_input('' .. i) end}
+    { 'kp' .. i, function() self:handle_char_input('' .. i) end }
   end
 
   return bindings
@@ -870,7 +870,7 @@ end
 
 function em:text_input(info)
   if info.key_text and (info.event == "press" or info.event == "down"
-                        or info.event == "repeat")
+      or info.event == "repeat")
   then
     self:handle_char_input(info.key_text)
   end
@@ -884,11 +884,11 @@ function em:define_key_bindings()
     -- Generate arbitrary name for removing the bindings later.
     local name = "search_" .. (#self.key_bindings + 1)
     self.key_bindings[#self.key_bindings + 1] = name
-    mp.add_forced_key_binding(bind[1], name, bind[2], {repeatable = true})
+    mp.add_forced_key_binding(bind[1], name, bind[2], { repeatable = true })
   end
-  mp.add_forced_key_binding("any_unicode", "search_input", function (...)
-                              self:text_input(...)
-  end, {repeatable = true, complex = true})
+  mp.add_forced_key_binding("any_unicode", "search_input", function(...)
+    self:text_input(...)
+  end, { repeatable = true, complex = true })
   self.key_bindings[#self.key_bindings + 1] = "search_input"
 end
 
