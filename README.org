@@ -109,7 +109,7 @@ to your =~~/script-modules= directory.
 M-x menu as well.
 
 *** Options
-=~~/scripts-opts/M-x.conf=:
+=~~/scripts-opts/M_x.conf=:
 
 #+begin_src conf
 strip_cmd_at=65 # strip cmd name
@@ -146,7 +146,7 @@ to your =~~/script-modules= directory.
 
 Since this script is also using =extended-menu= it has pretty much the same
 options as [[*M-x][M-x]]. If you want to change any of those - put those in
-=~~/scripts-opts/M-x.conf=
+=~~/scripts-opts/M_x.conf=
 
 #+begin_src conf
 toggle_menu_binding=g
