@@ -8,19 +8,25 @@ in. Examples of how this menu looks/is used you can look up in /M-x/ and
 Most of them are selfexplanatory, if they ain't - there are comments in source
 
 #+begin_src conf
-lines_to_show=17 # NOT including search line
-pause_on_open=true # pauses video on menu opening
+# NOT including search line
+lines_to_show=17
+# pauses video on menu opening
+pause_on_open=yes
 # resumes on menu close
-resume_on_exit=only-if-was-paused # another possible value is true
+# another possible value is true
+resume_on_exit=only-if-was-paused
 
 # styles
 font_size=21
 # cursor 'width', useful to change if you have hidpi monitor
 cursor_x_border=0.3
-line_bottom_margin=1 # basically space between lines
+# basically space between lines
+line_bottom_margin=1
 text_color=[ "default":'ffffff',"accent":'d8a07b',"current":'aaaaaa',"comment":'636363' ]
-menu_x_padding=5 # this padding for now applies only to left not x
-menu_y_padding=2 # but this one applies to both - top & bottom
+# this padding for now applies only to left not x
+menu_x_padding=5
+# but this one applies to both - top & bottom
+menu_y_padding=2
 
 # Some more advanced customizations:
 search_heading=Default search heading

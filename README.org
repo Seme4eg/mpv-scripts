@@ -24,15 +24,20 @@ Default =~~/scripts-opts/leader.conf=:
 
 #+begin_src conf
 leader_key=,
-pause_on_open=false
-resume_on_exit=only-if-was-paused # another possible value is true
-hide_timeout=2 # timeout in seconds to hide menu
-which_key_timeout=1 # timeout in seconds to show which-key menu
-strip_cmd_at=28 # max symbols for cmd names in which-key menu
+pause_on_open=no
+# another possible value is true
+resume_on_exit=only-if-was-paused
+# timeout in seconds to hide menu
+hide_timeout=2
+# timeout in seconds to show which-key menu
+which_key_timeout=1
+# max symbols for cmd names in which-key menu
+strip_cmd_at=28
 
 # styles
 font_size=21
-menu_x_padding=3 # this padding for now applies only to 'left', not x
+# this padding for now applies only to 'left', not x
+menu_x_padding=3
 which_key_menu_y_padding=3
 #+end_src
 
@@ -112,14 +117,16 @@ M-x menu as well.
 =~~/scripts-opts/M_x.conf=:
 
 #+begin_src conf
-strip_cmd_at=65 # strip cmd name
-sort_commands_by = 'priority', # available values: priority, command_name
+# strip cmd name
+strip_cmd_at=65
+# available values: priority, command_name
+sort_commands_by=priority
 
 #- options for extended menu ------------------------------------------------
 toggle_menu_binding=t
 lines_to_show=17
-pause_on_open=true
-resume_on_exit=only-if-was-paused # another possible value is true
+pause_on_open=yes
+resume_on_exit=only-if-was-paused
 
 #- styles
 font_size=21
@@ -129,8 +136,10 @@ line_bottom_margin=1
 menu_x_padding=5
 menu_y_padding=2
 
-search_heading=M-x # heading text of a search bar
-filter_by_fields=[ "cmd", "key", "comment" ] # look for explanation below
+# heading text of a search bar
+search_heading=M-x
+# look for explanation below
+filter_by_fields=[ "cmd", "key", "comment" ]
 column_layout=no
 #+end_src
 
@@ -153,11 +162,11 @@ options as [[*M-x][M-x]]. If you want to change any of those - put those in
 #+begin_src conf
 toggle_menu_binding=g
 lines_to_show=17
-pause_on_open=true
+pause_on_open=yes
 resume_on_exit=only-if-was-paused
 
 # styles
-font_siz=1
+font_size=21
 # cursor 'width', useful to change if you have hidpi monitor
 cursor_x_border=0.3
 line_bottom_margin=1

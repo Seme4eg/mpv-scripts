@@ -2,7 +2,7 @@ local mp = require 'mp' -- isn't actually required, mp still gonna be defined
 local utils = require 'mp.utils'
 local assdraw = require 'mp.assdraw'
 
--- should not be altered here, edit options in corresponding .conf file
+-- NOTE: should not be altered here, edit options in corresponding .conf file
 local opts = {
   -- options for this script --------------------------------------------------
   strip_cmd_at = 65,
