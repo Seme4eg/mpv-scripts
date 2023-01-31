@@ -1,14 +1,3 @@
--- TODO: (http://www.lua.org/pil/7.4.html)
--- Whenever it is possible, you should try to write stateless iterators, those
--- that keep all their state in the for variables. With them, you do not create
--- new objects when you start a loop. If you cannot fit your iteration into that
--- model, then you should try closures. Besides being more elegant, typically a
--- closure is more efficient than an iterator using tables: First, it is cheaper
--- to create a closure than a table; second, access to upvalues is faster than
--- access to table fields. Later we will see yet another way to write iterators,
--- with coroutines. This is the most powerful solution, but a little more
--- expensive.
-
 local mp = require 'mp'
 local utils = require 'mp.utils'
 local assdraw = require 'mp.assdraw'
