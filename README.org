@@ -1,10 +1,8 @@
 #+TITLE: MPV scripts
 
-** Leader
+** Leader [[https://i.imgur.com/dUWFu3u.gif][demo]]
 Adds /leader/ key to your mpv. With prefixes and [[https://github.com/justbur/emacs-which-key][which-key]] functionality. Allows
 for 'mnemonic' command calling.
-
-https://i.imgur.com/dUWFu3u.gif - demo
 
 It won't redefine existing bidings (at least i didn't find a way to do it for
 now), but it will add leader bindings on top of current ones, which will allow
@@ -17,7 +15,7 @@ up in script file) they must be initially set to some key, which is usually not
 a problem since most (if not all) scripts bind themselfes to some default key.
 
 _Setup_:
-- Copy =leader.lua= to your =~~/scripts=
+- copy =leader.lua= to your =~~/scripts=
 - copy =./script-modules/leader.lua= to your =~~/script-modules=
 - copy =./script-opts/leader.conf= to your =~~/script-opts=
 
@@ -79,11 +77,9 @@ pulling from master since everyone will have his own bindings object.
 
 **** DONE Upon init set all leader bindings to M-x and merge it there
 **** TODO move recently called commands to top of M-x menu list
-** M-x
+** M-x [[https://i.imgur.com/8zTPTzK.gif][demo]]
 A menu that shows all commands you have available, key bindings and commends (if
 present) and from which you can call any of those commands.
-
-https://i.imgur.com/8zTPTzK.gif - demo
 
 _Setup_:
 - copy =M-x.lua= to your =~~/scripts=
