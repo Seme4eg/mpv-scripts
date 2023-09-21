@@ -6,9 +6,9 @@ local opts = {
   leader_key = ',',
   pause_on_open = false,
   resume_on_exit = "only-if-was-paused", -- another possible value is true
-  hide_timeout = 2, -- timeout in seconds to hide menu
-  which_key_show_delay = 0.1, -- timeout in seconds to show which-key menu
-  strip_cmd_at = 28, -- max symbols for cmd names in which-key menu
+  hide_timeout = 2,                      -- timeout in seconds to hide menu
+  which_key_show_delay = 0.1,            -- timeout in seconds to show which-key menu
+  strip_cmd_at = 28,                     -- max symbols for cmd names in which-key menu
 
   -- styles
   font_size = 21,
@@ -24,10 +24,10 @@ local leader = {
   was_paused = false, -- flag that indicates that vid was paused by this script
 
   leader_bindings = {},
-  prefixes = {}, -- needed for some display info only
+  prefixes = {},         -- needed for some display info only
   matching_commands = {},
   which_key_timer = nil, -- timer obj, that opens which-key
-  close_timer = nil, -- timer obj, that closes menu
+  close_timer = nil,     -- timer obj, that closes menu
 
   text_color = {
     key = 'a9dfa1',
@@ -91,7 +91,6 @@ function leader:get_matching_commands()
       end
     end
   else -- in case there is at least 1 key pressed after leadre handle prefixes
-
     -- include all commands that consist of only 1 key
     for i, v in ipairs(self.matching_commands) do
       if #v.key == #self.key_sequence + 1 then
@@ -117,7 +116,6 @@ function leader:update_matching_commands(kbd)
 end
 
 function leader:set_leader_bindings(bindings)
-
   local function get_full_cmd_name(cmd)
     -- for now i decided to not implement 'guess' logic on which command user
     -- wants to fire, cuz it will make things less obvious and i'd rather have
@@ -133,11 +131,9 @@ function leader:set_leader_bindings(bindings)
       -- if it's a script-binding - find and return it's full name
       if binding.cmd:find(cmd, 1, true) then return binding.cmd end
     end
-
   end
 
   local function set(_bindings, prefix_sequence)
-
     local key, name, comment, innerBindings
 
     prefix_sequence = prefix_sequence or ''
@@ -170,13 +166,11 @@ function leader:set_leader_bindings(bindings)
         })
       end
     end
-
   end
 
   set(bindings)
 
   self:provide_leader_bindings()
-
 end
 
 -- send leader bindings to M-x
@@ -308,7 +302,6 @@ function leader:update(params)
   end
 
   local function which_key()
-
     if #current_matchings <= 1 then return '' end
 
     local a = assdraw.ass_new()
@@ -363,7 +356,6 @@ function leader:update(params)
     end
 
     return a.text
-
   end
 
   leader.ass.res_x = ww
@@ -373,7 +365,6 @@ function leader:update(params)
     which_key() }, "\n")
 
   leader.ass:update()
-
 end
 
 -- Set the REPL visibility
@@ -431,8 +422,8 @@ function leader:handle_input(c)
     -- and set timeout to show which-key
     self.which_key_timer = mp.add_timeout(
       opts.which_key_show_delay, function()
-      self:update({ is_prefix = true })
-    end)
+        self:update({ is_prefix = true })
+      end)
   end
 
   if #self.matching_commands == 1 then
@@ -443,8 +434,8 @@ function leader:handle_input(c)
       -- and set timeout to show which-key
       self.which_key_timer = mp.add_timeout(
         opts.which_key_show_delay, function()
-        self:update({ is_prefix = true })
-      end)
+          self:update({ is_prefix = true })
+        end)
 
       return
     end
@@ -469,7 +460,8 @@ end
 
   I was too lazy to list all modifications i've done to the script, but if u
   rly need to see those - do diff with the original code
-]] --
+]]
+   --
 
 -------------------------------------------------------------------------------
 --                          START ORIGINAL MPV CODE                          --
@@ -512,9 +504,9 @@ function leader:get_bindings()
   local bindings = {
     { 'ctrl+[', function() self:set_active(false) end },
     { 'ctrl+g', function() self:set_active(false) end },
-    { 'esc', function() self:set_active(false) end },
-    { 'enter', function() self:handle_input('enter') end },
-    { 'bs', function() self:handle_input('bs') end },
+    { 'esc',    function() self:set_active(false) end },
+    { 'enter',  function() self:handle_input('enter') end },
+    { 'bs',     function() self:handle_input('bs') end },
 
     -- { 'ctrl+h',      function() self:handle_backspace() end        },
   }
@@ -529,7 +521,7 @@ end
 
 function leader:text_input(info)
   if info.key_text and (info.event == "press" or info.event == "down"
-      or info.event == "repeat")
+        or info.event == "repeat")
   then
     self:handle_input(info.key_text)
   end
