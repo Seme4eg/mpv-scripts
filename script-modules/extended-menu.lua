@@ -7,7 +7,7 @@ local em = {
 
   -- customisable values ------------------------------------------------------
 
-  lines_to_show = 17, -- NOT including search line
+  lines_to_show = 17,                    -- NOT including search line
   pause_on_open = true,
   resume_on_exit = "only-if-was-paused", -- another possible value is true
 
@@ -176,7 +176,7 @@ function em:update(err_code)
   local ww, wh = mp.get_osd_size() -- window width & height
   -- '+ 1' below is a search string
   local menu_y_pos =
-  wh - (line_height * (self.lines_to_show + 1) + self.menu_y_padding * 2)
+      wh - (line_height * (self.lines_to_show + 1) + self.menu_y_padding * 2)
 
   -- didn't find better place to handle filtered list update
   if self.line ~= self.prev_line then self:filter_wrapper() end
@@ -213,11 +213,11 @@ function em:update(err_code)
     -- horizontal borders.
     local cheight = self.font_size * 8
     -- TODO: maybe do it using draw_rect from ass?
-    local cglyph = '{\\r' .. -- styles reset
-        '\\1c&Hffffff&\\3c&Hffffff' .. -- font color and border color
+    local cglyph = '{\\r' ..                                   -- styles reset
+        '\\1c&Hffffff&\\3c&Hffffff' ..                         -- font color and border color
         '\\xbord' .. self.cursor_x_border .. '\\p4\\pbo24}' .. -- xborder, scale x8 and baseline offset
-        'm 0 0 l 0 ' .. cheight .. -- drawing just a line
-        '{\\p0\\r}' -- finish drawing and reset styles
+        'm 0 0 l 0 ' .. cheight ..                             -- drawing just a line
+        '{\\p0\\r}'                                            -- finish drawing and reset styles
     local before_cur = self:ass_escape(self.line:sub(1, self.cursor - 1))
     local after_cur = self:ass_escape(self.line:sub(self.cursor))
 
@@ -281,7 +281,6 @@ function em:update(err_code)
   }, "\n")
 
   em.ass:update()
-
 end
 
 -- params:
@@ -432,7 +431,8 @@ end
 
   I was too lazy to list all modifications i've done to the script, but if u
   rly need to see those - do diff with the original code
-]] --
+]]
+   --
 
 -------------------------------------------------------------------------------
 --                          START ORIGINAL MPV CODE                          --
@@ -799,56 +799,56 @@ end
 -- bindings and readline bindings.
 function em:get_bindings()
   local bindings = {
-    { 'ctrl+[', function() self:set_active(false) end },
-    { 'ctrl+g', function() self:set_active(false) end },
-    { 'esc', function() self:set_active(false) end },
-    { 'enter', function() self:handle_enter() end },
-    { 'kp_enter', function() self:handle_enter() end },
-    { 'ctrl+m', function() self:handle_enter() end },
-    { 'bs', function() self:handle_backspace() end },
-    { 'shift+bs', function() self:handle_backspace() end },
-    { 'ctrl+h', function() self:handle_backspace() end },
-    { 'del', function() self:handle_del() end },
-    { 'shift+del', function() self:handle_del() end },
-    { 'ins', function() self:handle_ins() end },
-    { 'shift+ins', function() self:paste(false) end },
-    { 'mbtn_mid', function() self:paste(false) end },
-    { 'left', function() self:prev_char() end },
-    { 'ctrl+b', function() self:prev_char() end },
-    { 'right', function() self:next_char() end },
-    { 'ctrl+f', function() self:next_char() end },
-    { 'ctrl+k', function() self:change_selected_index(-1) end },
-    { 'ctrl+p', function() self:change_selected_index(-1) end },
-    { 'ctrl+j', function() self:change_selected_index(1) end },
-    { 'ctrl+n', function() self:change_selected_index(1) end },
-    { 'up', function() self:move_history(-1) end },
-    { 'alt+p', function() self:move_history(-1) end },
-    { 'wheel_up', function() self:move_history(-1) end },
-    { 'down', function() self:move_history(1) end },
-    { 'alt+n', function() self:move_history(1) end },
-    { 'wheel_down', function() self:move_history(1) end },
-    { 'wheel_left', function() end },
+    { 'ctrl+[',      function() self:set_active(false) end },
+    { 'ctrl+g',      function() self:set_active(false) end },
+    { 'esc',         function() self:set_active(false) end },
+    { 'enter',       function() self:handle_enter() end },
+    { 'kp_enter',    function() self:handle_enter() end },
+    { 'ctrl+m',      function() self:handle_enter() end },
+    { 'bs',          function() self:handle_backspace() end },
+    { 'shift+bs',    function() self:handle_backspace() end },
+    { 'ctrl+h',      function() self:handle_backspace() end },
+    { 'del',         function() self:handle_del() end },
+    { 'shift+del',   function() self:handle_del() end },
+    { 'ins',         function() self:handle_ins() end },
+    { 'shift+ins',   function() self:paste(false) end },
+    { 'mbtn_mid',    function() self:paste(false) end },
+    { 'left',        function() self:prev_char() end },
+    { 'ctrl+b',      function() self:prev_char() end },
+    { 'right',       function() self:next_char() end },
+    { 'ctrl+f',      function() self:next_char() end },
+    { 'ctrl+k',      function() self:change_selected_index(-1) end },
+    { 'ctrl+p',      function() self:change_selected_index(-1) end },
+    { 'ctrl+j',      function() self:change_selected_index(1) end },
+    { 'ctrl+n',      function() self:change_selected_index(1) end },
+    { 'up',          function() self:move_history(-1) end },
+    { 'alt+p',       function() self:move_history(-1) end },
+    { 'wheel_up',    function() self:move_history(-1) end },
+    { 'down',        function() self:move_history(1) end },
+    { 'alt+n',       function() self:move_history(1) end },
+    { 'wheel_down',  function() self:move_history(1) end },
+    { 'wheel_left',  function() end },
     { 'wheel_right', function() end },
-    { 'ctrl+left', function() self:prev_word() end },
-    { 'alt+b', function() self:prev_word() end },
-    { 'ctrl+right', function() self:next_word() end },
-    { 'alt+f', function() self:next_word() end },
-    { 'ctrl+a', function() self:go_home() end },
-    { 'home', function() self:go_home() end },
-    { 'ctrl+e', function() self:go_end() end },
-    { 'end', function() self:go_end() end },
-    { 'pgup', function() self:handle_pgup() end },
-    { 'pgdwn', function() self:handle_pgdown() end },
-    { 'ctrl+c', function() self:clear() end },
-    { 'ctrl+d', function() self:handle_del() end },
-    { 'ctrl+u', function() self:del_to_start() end },
-    { 'ctrl+v', function() self:paste(true) end },
-    { 'meta+v', function() self:paste(true) end },
-    { 'ctrl+bs', function() self:del_word() end },
-    { 'ctrl+w', function() self:del_word() end },
-    { 'ctrl+del', function() self:del_next_word() end },
-    { 'alt+d', function() self:del_next_word() end },
-    { 'kp_dec', function() self:handle_char_input('.') end },
+    { 'ctrl+left',   function() self:prev_word() end },
+    { 'alt+b',       function() self:prev_word() end },
+    { 'ctrl+right',  function() self:next_word() end },
+    { 'alt+f',       function() self:next_word() end },
+    { 'ctrl+a',      function() self:go_home() end },
+    { 'home',        function() self:go_home() end },
+    { 'ctrl+e',      function() self:go_end() end },
+    { 'end',         function() self:go_end() end },
+    { 'pgup',        function() self:handle_pgup() end },
+    { 'pgdwn',       function() self:handle_pgdown() end },
+    { 'ctrl+c',      function() self:clear() end },
+    { 'ctrl+d',      function() self:handle_del() end },
+    { 'ctrl+u',      function() self:del_to_start() end },
+    { 'ctrl+v',      function() self:paste(true) end },
+    { 'meta+v',      function() self:paste(true) end },
+    { 'ctrl+bs',     function() self:del_word() end },
+    { 'ctrl+w',      function() self:del_word() end },
+    { 'ctrl+del',    function() self:del_next_word() end },
+    { 'alt+d',       function() self:del_next_word() end },
+    { 'kp_dec',      function() self:handle_char_input('.') end },
   }
 
   for i = 0, 9 do
@@ -861,7 +861,7 @@ end
 
 function em:text_input(info)
   if info.key_text and (info.event == "press" or info.event == "down"
-      or info.event == "repeat")
+        or info.event == "repeat")
   then
     self:handle_char_input(info.key_text)
   end

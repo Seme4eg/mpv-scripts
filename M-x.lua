@@ -15,7 +15,7 @@ local opts = {
   resume_on_exit = "only-if-was-paused", -- another possible value is true
 
   -- styles
-  font_size=21,
+  font_size = 21,
   -- cursor 'width', useful to change if you have hidpi monitor
   cursor_x_border = 0.3,
   line_bottom_margin = 1,
@@ -39,7 +39,7 @@ local opts = {
 (require 'mp.options').read_options(opts, mp.get_script_name())
 
 package.path =
-mp.command_native({ "expand-path", "~~/script-modules/?.lua;" }) .. package.path
+    mp.command_native({ "expand-path", "~~/script-modules/?.lua;" }) .. package.path
 local em = require "extended-menu"
 
 local mx_menu = em:new(opts)
@@ -136,11 +136,10 @@ local function merge_leader_bindings(le, leader_key)
   -- for i,v in ipairs(not_found_leader_kbds) do
   --   print(v, 'not found')
   -- end
-
 end
 
 -- [i]ndex [v]alue
-function em:get_line(_, v)
+function get_line(_, v)
   local a = assdraw.ass_new()
   -- 20 is just a hardcoded value, cuz i don't think any keybinding string
   -- length might exceed this value
