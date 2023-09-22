@@ -1,5 +1,30 @@
 #+TITLE: MPV scripts
 
+** M-x [[https://i.imgur.com/8zTPTzK.gif][demo]]
+A menu that shows all commands you have available, key bindings and commends (if
+present) and from which you can call any of those commands.
+
+_Setup_:
+- copy =M-x.lua= to your =~~/scripts=
+- copy =./script-modules/extended-menu.lua= to your =~~/script-modules=
+- copy =./script-opts/M_x.conf= to your =~~/scripts-opts=
+
+*Keybidings* you can see in [[file:script-modules/README.org::*Usage (keybindings)][extended menu]] keybindings section.
+
+/Note/: if you are using my ~leader~ script, you will see your leader bindings in
+M-x menu as well.
+
+** M-x-rofi
+Essentially same thing as the =M-x= menu above, but instead of using =extended-menu=
+module uses external [[https://github.com/davatorium/rofi][rofi]] to display and search through commands.
+
+_Setup_:
+- copy =M-x-rofi.lua= to your =~~/scripts=
+- copy =./script-opts/M_x_rofi.conf= to your =~~/scripts-opts=
+
+/Note/: if you are using my ~leader~ script, you will see your leader bindings in
+M-x menu as well.
+
 ** Leader [[https://i.imgur.com/dUWFu3u.gif][demo]]
 Adds /leader/ key to your mpv. With prefixes and [[https://github.com/justbur/emacs-which-key][which-key]] functionality. Allows
 for 'mnemonic' command calling.
@@ -77,20 +102,6 @@ pulling from master since everyone will have his own bindings object.
 
 **** DONE Upon init set all leader bindings to M-x and merge it there
 **** TODO move recently called commands to top of M-x menu list
-** M-x [[https://i.imgur.com/8zTPTzK.gif][demo]]
-A menu that shows all commands you have available, key bindings and commends (if
-present) and from which you can call any of those commands.
-
-_Setup_:
-- copy =M-x.lua= to your =~~/scripts=
-- copy =./script-modules/extended-menu.lua= to your =~~/script-modules=
-- copy =./script-opts/M_x.conf= to your =~~/scripts-opts=
-
-*Keybidings* you can see in [[file:script-modules/README.org::*Usage (keybindings)][extended menu]] keybindings section.
-
-/Note/: if you are using my ~leader~ script, you will see your leader bindings in
-M-x menu as well.
-
 ** Chapter list
 No demo here since it has basically same functionality as [[*M-x][M-x]] but instead of
 commands you choose chapters of current video if those are provided. These 2
