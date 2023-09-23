@@ -14,7 +14,7 @@ _Setup_:
 /Note/: if you are using my ~leader~ script, you will see your leader bindings in
 M-x menu as well.
 
-** M-x-rofi
+** M-x-rofi [[http://0x0.st/HVoK.gif][demo]]
 Essentially same thing as the =M-x= menu above, but instead of using =extended-menu=
 module uses external [[https://github.com/davatorium/rofi][rofi]] to display and search through commands.
 
