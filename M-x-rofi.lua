@@ -158,6 +158,8 @@ end
 function mx:handler()
   local function update_bindings()
     mx:get_cmd_list()
+    self:sort_cmd_list()
+    self:form_lines()
     mp.commandv("script-message-to", "leader", "leader-bindings-request")
   end
 
