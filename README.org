@@ -25,6 +25,18 @@ _Setup_:
 /Note/: if you are using my ~leader~ script, you will see your leader bindings in
 M-x menu as well.
 
+** Shaders-rofi
+Set shaders from your shaders folder using rofi selection.
+
+_Setup_:
+- copy =shaders-rofi.lua= to your =~~/scripts=
+
+=Ctrl+s= - default keybinding. Change it via =input.conf=:
+
+: Ctrl+t script-binding shaders-rofi
+
+This script assumes shaders are installed under =~~/shaders/=
+
 ** Leader [[https://i.imgur.com/dUWFu3u.gif][demo]]
 Adds /leader/ key to your mpv. With prefixes and [[https://github.com/justbur/emacs-which-key][which-key]] functionality. Allows
 for 'mnemonic' command calling.
