@@ -139,7 +139,7 @@ local function merge_leader_bindings(le, leader_key)
 end
 
 -- [i]ndex [v]alue
-function get_line(_, v)
+function em:get_line(_, v)
   local a = assdraw.ass_new()
   -- 20 is just a hardcoded value, cuz i don't think any keybinding string
   -- length might exceed this value
