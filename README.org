@@ -1,6 +1,15 @@
 #+TITLE: MPV scripts
 
-** M-x [[https://i.imgur.com/8zTPTzK.gif][demo]]
+** Table of contents :TOC:
+  - [[#m-x][M-x]]
+  - [[#m-x-rofi][M-x-rofi]]
+  - [[#leader][Leader]]
+  - [[#shaders-rofi][Shaders-rofi]]
+  - [[#chapter-list][Chapter list]]
+
+** M-x
+[[https://i.imgur.com/8zTPTzK.gif][demo]]
+
 A menu that shows all commands you have available, key bindings and commends (if
 present) and from which you can call any of those commands.
 
@@ -14,7 +23,9 @@ _Setup_:
 /Note/: if you are using my ~leader~ script, you will see your leader bindings in
 M-x menu as well.
 
-** M-x-rofi [[http://0x0.st/HVoK.gif][demo]]
+** M-x-rofi
+[[http://0x0.st/HVoK.gif][demo]]
+
 Essentially same thing as the =M-x= menu above, but instead of using =extended-menu=
 module uses external [[https://github.com/davatorium/rofi][rofi]] to display and search through commands.
 
@@ -25,19 +36,9 @@ _Setup_:
 /Note/: if you are using my ~leader~ script, you will see your leader bindings in
 M-x menu as well.
 
-** Shaders-rofi
-Set shaders from your shaders folder using rofi selection.
+** Leader
+[[https://i.imgur.com/dUWFu3u.gif][demo]]
 
-_Setup_:
-- copy =shaders-rofi.lua= to your =~~/scripts=
-
-=Ctrl+s= - default keybinding. Change it via =input.conf=:
-
-: Ctrl+t script-binding shaders-rofi
-
-This script assumes shaders are installed under =~~/shaders/=
-
-** Leader [[https://i.imgur.com/dUWFu3u.gif][demo]]
 Adds /leader/ key to your mpv. With prefixes and [[https://github.com/justbur/emacs-which-key][which-key]] functionality. Allows
 for 'mnemonic' command calling.
 
@@ -114,6 +115,18 @@ pulling from master since everyone will have his own bindings object.
 
 **** DONE Upon init set all leader bindings to M-x and merge it there
 **** TODO move recently called commands to top of M-x menu list
+** Shaders-rofi
+Set shaders from your shaders folder using rofi selection.
+
+_Setup_:
+- copy =shaders-rofi.lua= to your =~~/scripts=
+
+=Ctrl+s= - default keybinding. Change it via =input.conf=:
+
+: Ctrl+t script-binding shaders-rofi
+
+This script assumes shaders are installed under =~~/shaders/=
+
 ** Chapter list
 No demo here since it has basically same functionality as [[*M-x][M-x]] but instead of
 commands you choose chapters of current video if those are provided. These 2
