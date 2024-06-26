@@ -133,6 +133,7 @@ function em:set_from_to(reset_flag)
       self.list.show_from_to = { i - half_list + 1, i - half_list + to_show }
     end
   else
+    table.unpack = table.unpack or unpack -- 5.1 compatibility
     local first, last = table.unpack(self.list.show_from_to)
 
     -- handle cursor moving towards start / end bondary

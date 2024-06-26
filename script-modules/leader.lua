@@ -139,6 +139,7 @@ function leader:set_leader_bindings(bindings)
     prefix_sequence = prefix_sequence or ''
 
     for _, binding in ipairs(_bindings) do
+      table.unpack = table.unpack or unpack -- 5.1 compatibility
       key, name, comment, innerBindings = table.unpack(binding)
 
       if name == 'prefix' then
