@@ -174,7 +174,10 @@ function em:update(err_code)
   end
 
   local line_height = self.font_size + self.line_bottom_margin
-  local ww, wh = mp.get_osd_size() -- window width & height
+  local _, _, a = mp.get_osd_size()
+  local wh = 720
+  local ww = wh * a
+
   -- '+ 1' below is a search string
   local menu_y_pos =
       wh - (line_height * (self.lines_to_show + 1) + self.menu_y_padding * 2)
