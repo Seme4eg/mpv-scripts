@@ -57,7 +57,7 @@ _Setup_:
 - copy =./script-modules/leader.lua= to your =~~/script-modules=
 - copy =./script-opts/leader.conf= to your =~~/script-opts=
 
-*** Binding talbe format
+*** Binding table format
 Example can be found in the script file itself.
 
 : {'key', 'name', 'description', [innerBindings]}
@@ -102,7 +102,7 @@ parent prefixes.
 ~{'s', 'prefix', 'subtitles', {'a', 'prefix', ... {'+', 'increase-font', ...}}}~
 will result in ~sa+~ keybinding for ~increase-font~ command.
 
-*** Passing bindings talbe to script-module
+*** Passing bindings table to script-module
 Pass it to ~set_leader_bindings~ func, which can be found in the end of
 =~~/scripts/leader.lua=
 
@@ -115,6 +115,7 @@ pulling from master since everyone will have his own bindings object.
 
 **** DONE Upon init set all leader bindings to M-x and merge it there
 **** TODO move recently called commands to top of M-x menu list
+
 ** Shaders-rofi
 Set shaders from your shaders folder using rofi selection.
 
@@ -125,12 +126,13 @@ _Setup_:
 
 : Ctrl+t script-binding shaders-rofi
 
-This script assumes shaders are installed under =~~/shaders/=
+This script assumes shaders are under =~~/shaders/=. Make an issue/pull request if
+redefining shaders dir is a common case.
 
 ** Chapter list
 No demo here since it has basically same functionality as [[*M-x][M-x]] but instead of
-commands you choose chapters of current video if those are provided. These 2
-scripts share same script-module.
+commands you choose chapters of current video (if any). Shares same
+script-module with M-x.
 
 _Setup_:
 - copy =chapter_list.lua= to your =~~/scripts=
