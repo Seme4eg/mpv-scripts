@@ -7,6 +7,7 @@ local em = {
 
   -- customisable values ------------------------------------------------------
 
+  loop_when_navigating = false,          -- Loop when navigating through list
   lines_to_show = 17,                    -- NOT including search line
   pause_on_open = true,
   resume_on_exit = "only-if-was-paused", -- another possible value is true
@@ -156,10 +157,18 @@ end
 
 function em:change_selected_index(num)
   self.list.pointer_i = self.list.pointer_i + num
-  if self.list.pointer_i < 1 then
-    self.list.pointer_i = #self:current()
-  elseif self.list.pointer_i > #self:current() then
-    self.list.pointer_i = 1
+  if self.loop_when_navigating then
+    if self.list.pointer_i < 1 then
+      self.list.pointer_i = #self:current()
+    elseif self.list.pointer_i > #self:current() then
+      self.list.pointer_i = 1
+    end
+  else
+    if self.list.pointer_i < 1 then
+      self.list.pointer_i = 1
+    elseif self.list.pointer_i > #self:current() then
+      self.list.pointer_i = #self:current()
+    end
   end
   self:set_from_to()
   self:update()
