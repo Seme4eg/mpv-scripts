@@ -6,6 +6,7 @@ local opts = {
   -- 'extended-menu' script
 
   toggle_menu_binding = 'g',
+  loop_when_navigating= true,
   lines_to_show = 17,
   pause_on_open = true,
   resume_on_exit = "only-if-was-paused",
