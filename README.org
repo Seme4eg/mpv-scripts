@@ -8,7 +8,7 @@
   - [[#chapter-list][Chapter list]]
 
 ** M-x
-[[https://i.imgur.com/8zTPTzK.gif][demo]]
+[[assets/M-x.gif]]
 
 A menu that shows all commands you have available, key bindings and commends (if
 present) and from which you can call any of those commands.
@@ -24,7 +24,8 @@ _Setup_:
 M-x menu as well.
 
 ** M-x-rofi
-[[http://0x0.st/HVoK.gif][demo]]
+Essentially same as M-x, but pipes the output to into your rofi executable,
+using it instead of =extended-menu= script.
 
 Essentially same thing as the =M-x= menu above, but instead of using =extended-menu=
 module uses external [[https://github.com/davatorium/rofi][rofi]] to display and search through commands.
@@ -37,7 +38,7 @@ _Setup_:
 M-x menu as well.
 
 ** Leader
-[[https://i.imgur.com/dUWFu3u.gif][demo]]
+[[assets/leader.gif]]
 
 Adds /leader/ key to your mpv. With prefixes and [[https://github.com/justbur/emacs-which-key][which-key]] functionality. Allows
 for 'mnemonic' command calling.
