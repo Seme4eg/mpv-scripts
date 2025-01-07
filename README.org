@@ -24,10 +24,7 @@ _Setup_:
 M-x menu as well.
 
 ** M-x-rofi
-Essentially same as M-x, but pipes the output to into your rofi executable,
-using it instead of =extended-menu= script.
-
-Essentially same thing as the =M-x= menu above, but instead of using =extended-menu=
+Essentially same as the =M-x=, but instead of using =extended-menu=
 module uses external [[https://github.com/davatorium/rofi][rofi]] to display and search through commands.
 
 _Setup_:
