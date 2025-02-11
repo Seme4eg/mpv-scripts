@@ -71,6 +71,8 @@ local em = {
 
 -- PRIVATE METHODS ------------------------------------------------------------
 
+local ime_active = mp.get_property_native("input-ime")
+
 -- declare constructor function
 function em:new(o)
   o = o or {}
@@ -501,6 +503,9 @@ end
 function em:set_active(active)
   if active == self.is_active then return end
   if active then
+    if ime_active == false then
+      mp.set_property_bool("input-ime", true)
+    end
     self.is_active = true
     self.insert_mode = false
     mp.enable_messages('terminal-default')
@@ -516,6 +521,9 @@ function em:set_active(active)
     self:update()
   else
     -- no need to call 'update' in this block cuz 'clear' method is calling it
+    if ime_active == false then
+      mp.set_property_bool("input-ime", false)
+    end
     self.is_active = false
     self:undefine_key_bindings()
 
